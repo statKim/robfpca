@@ -34,14 +34,15 @@ local_kern_smooth(
 
 \item{kernel}{a kernel function for kernel smoothing ("epan", "gauss" are supported.)}
 
-\item{k2}{cut-off value for Huber function}
-
-\item{...}{For loss = "Huber", it uses \code{rlm()} in \code{MASS} and fits the robust regression with Huber loss.
+\item{k2}{cut-off value for Huber function
+For loss = "Huber", it uses \code{rlm()} in \code{MASS} and fits the robust regression with Huber loss.
 So additional parameters of \code{rlm()} can be applied. (k2, maxit, ...)}
+
+\item{...}{additional parameters}
 }
 \value{
 a smoothed vector
 }
 \description{
-Local polynomial kernel smoothing with huber loss (mean estimator)
+Robust local polynomial smoothing via Huber function using iteratively re-weighted least sqruares (IRLS) algorithm
 }

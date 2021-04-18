@@ -1,15 +1,6 @@
-### Local polynomial kernel smoothing with huber loss (mean estimator)
-# Lt : a list of vectors or a vector containing time points for all curves
-# Ly : a list of vectors or a vector containing observations for all curves
-# newt : a vector containing time points to estimate
-# method : "Huber" or "WRM" or "Bisquare"
-# bw : bandwidth
-# kernel : a kernel function for kernel smoothing ("epan", "gauss" are supported.)
-# loss : a loss function for kernel smoothing("L2" is squared loss, "Huber" is huber loss.)
-#   For loss = "Huber", it uses `rlm()` in `MASS` and fits the robust regression with Huber loss.
-#   So additional parameters of `rlm()` can be applied. (k2, maxit, ...)
-
 #' Local polynomial kernel smoothing with huber loss (mean estimator)
+#'
+#' Robust local polynomial smoothing via Huber function using iteratively re-weighted least sqruares (IRLS) algorithm
 #'
 #' @param Lt  a list of vectors or a vector containing time points for all curves
 #' @param Ly  a list of vectors or a vector containing observations for all curves
@@ -20,12 +11,11 @@
 #' @param deg a degree of polynomial
 #' @param ncores number of cores for k-fold cross-validation
 #' @param k2 cut-off value for Huber function
-#' @param ...
 #' For loss = "Huber", it uses \code{rlm()} in \code{MASS} and fits the robust regression with Huber loss.
 #' So additional parameters of \code{rlm()} can be applied. (k2, maxit, ...)
+#' @param ... additional parameters
+#'
 #' @return a smoothed vector
-#' @import foreach
-#' @import dplyr
 local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM","BISQUARE"),
                               bw = NULL, deg = 1, ncores = 1,
                               kernel = "epanechnikov", k2 = 1.345, ...) {
@@ -117,17 +107,25 @@ local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM"
 
 
 
-### K-fold cross validation to find optimal bandwidth for local polynomial kernel smoother
-# Lt : a list of vectors containing time points for each curve
-# Ly : a list of vectors containing observations for each curve
-# method : "Huber" or "WRM" or "Bisquare"
-# K : the number of folds
-# bw_cand : user defined bandwidth candidates for CV
-# ncores : If ncores > 1, it implements `foreach()` in `doParallel` for CV.
-# Other parameters are same with `local_kern_smooth()`.
+#' K-fold cross validation to find optimal bandwidth for local polynomial kernel smoother
+#'
+#' @param Lt a list of vectors containing time points for each curve
+#' @param Ly a list of vectors containing observations for each curve
+#' @param method "Huber" or "WRM" or "Bisquare"
+#' @param kernel a kernel function for kernel smoothing ("epan", "gauss" are supported.)
+#' @param cv_loss "Huber" or "L1" or "L2"
+#' @param k2 cut-off value for Huber function
+#' @param bw_cand user defined bandwidth candidates for CV
+#' @param K the number of folds
+#' @param ncores If ncores > 1, it implements \code{foreach()} in \code{doParallel} for CV.
+#' @param ... parameters are same with \code{local_kern_smooth()}.
+#'
+#' @return bandwidth
+#' @import foreach
+#' @import dplyr
 bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechnikov",
-                                 cv_loss = "HUBER", ncores = 1, k2 = 1.345,
-                                 K = 5, bw_cand = NULL, ...) {
+                                 cv_loss = "HUBER", k2 = 1.345, bw_cand = NULL,
+                                 K = 5,  ncores = 1, ...) {
   cv_loss <- toupper(cv_loss)
   if (!(cv_loss %in% c("HUBER","L1","L2"))) {
     stop(paste0(cv_loss, " is not provided. Check cv_loss parameter."))
@@ -272,17 +270,26 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
 }
 
 
-### K-fold cross validation to find optimal delta for Huber loss function
-# Lt : a list of vectors containing time points for each curve
-# Ly : a list of vectors containing observations for each curve
-# method : "Huber"
-# K : the number of folds
-# delta_cand : user defined delta candidates for CV
-# ncores : If ncores > 1, it implements `foreach()` in `doParallel` for CV.
-# Other parameters are same with `local_kern_smooth()`.
+
+#' K-fold cross validation to find optimal delta for Huber loss function
+#'
+#' @param Lt a list of vectors containing time points for each curve
+#' @param Ly a list of vectors containing observations for each curve
+#' @param method "Huber" or "WRM" or "Bisquare"
+#' @param kernel a kernel function for kernel smoothing ("epan", "gauss" are supported.)
+#' @param cv_loss "L1" or "L2"
+#' @param bw bandwidth
+#' @param delta_cand user defined delta candidates for CV
+#' @param K the number of folds
+#' @param ncores If ncores > 1, it implements \code{foreach()} in \code{doParallel} for CV.
+#' @param ... parameters are same with \code{local_kern_smooth()}.
+#'
+#' @return delta
+#' @import foreach
+#' @import dplyr
 delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechnikov",
-                                    cv_loss = "L1", ncores = 1,
-                                    K = 5, delta_cand = NULL,  bw = NULL, ...) {
+                                    cv_loss = "L1", bw = NULL, delta_cand = NULL,
+                                    K = 5, ncores = 1, ...) {
   cv_loss <- toupper(cv_loss)
   if (!(cv_loss %in% c("L1","L2"))) {
     stop(paste0(cv_loss, " is not provided. Check cv_loss parameter."))
