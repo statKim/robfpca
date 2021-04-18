@@ -14,6 +14,8 @@
 #'
 #' @references
 #' \cite{Fried, R., Einbeck, J., & Gather, U. (2007). Weighted repeated median smoothing and filtering. Journal of the American Statistical Association, 102(480), 1300-1308.}
+#'
+#' @export
 wrm_smooth <- function(x, y, h, xgrid = NULL, kernel = "epanechnikov") {
 
   if (is.null(xgrid)) {

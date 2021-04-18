@@ -16,6 +16,7 @@
 #' @param ... additional parameters
 #'
 #' @return a smoothed vector
+#' @export
 local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM","BISQUARE"),
                               bw = NULL, deg = 1, ncores = 1,
                               kernel = "epanechnikov", k2 = 1.345, ...) {
@@ -123,6 +124,8 @@ local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM"
 #' @return bandwidth
 #' @import foreach
 #' @import dplyr
+#'
+#' @export
 bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechnikov",
                                  cv_loss = "HUBER", k2 = 1.345, bw_cand = NULL,
                                  K = 5,  ncores = 1, ...) {
@@ -287,6 +290,8 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
 #' @return delta
 #' @import foreach
 #' @import dplyr
+#'
+#' @export
 delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechnikov",
                                     cv_loss = "L1", bw = NULL, delta_cand = NULL,
                                     K = 5, ncores = 1, ...) {
