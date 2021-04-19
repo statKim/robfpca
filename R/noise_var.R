@@ -74,7 +74,7 @@ select.sig2.rob.bw <- function(Lt, Ly, ss = NULL) {
     # calculate sum of squares - Not recommended (Already it was calculated once!)
     if (is.null(ss)) {
         # mu.hat <- predict(meanfunc(Lt,Ly),Ly)
-        mu.hat <- predict(meanfunc(Lt, Ly), Lt)
+        mu.hat <- predict(meanfunc.rob(Lt, Ly), Lt)
         ss <- lapply(1:length(Lt),function(i){
             rr <- Ly[[i]] - mu.hat[[i]]
             rr^2

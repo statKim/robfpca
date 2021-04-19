@@ -18,10 +18,11 @@ LinkingTo:
 Imports: 
     Rcpp,
     RcppEigen,
-    fdapace,
     dplyr,
     doParallel,
+    fdapace,
     foreach,
-    robfilter
+    robfilter,
+    pracma
 Suggests: 
     MASS
