@@ -290,6 +290,8 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
 #' @return delta
 #' @import foreach
 #' @import dplyr
+#' @import doParallel
+#' @import parallel
 #'
 #' @export
 delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechnikov",
