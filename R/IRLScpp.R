@@ -347,8 +347,8 @@ delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechn
                                  fold = rep(1:K, length(delta_cand)))
 
     cv_error <- foreach::foreach(i = 1:nrow(delta_fold_mat), .combine = "c",
-                                 .export = c("local_kern_smooth"),
-                                 .packages = c("robfilter"),
+                                 # .export = c("local_kern_smooth"),
+                                 .packages = c("robfilter","robfpca"),
                                  .errorhandling = "pass") %dopar% {
       delta <- delta_fold_mat$delta_cand[i]   # bandwidth candidate
       k <- delta_fold_mat$fold[i]   # fold for K-fold CV
@@ -359,8 +359,8 @@ delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechn
       Lt_test <- Lt[ folds[[k]] ]
       Ly_test <- Ly[ folds[[k]] ]
 
-      y_hat <- local_kern_smooth(Lt = Lt_train, Ly = Ly_train, newt = Lt_test, method = method,
-                                 bw = bw, k2 = delta, kernel = kernel, ...)
+      y_hat <- robfpca::local_kern_smooth(Lt = Lt_train, Ly = Ly_train, newt = Lt_test, method = method,
+                                          bw = bw, k2 = delta, kernel = kernel, ...)
       # y_hat <- tryCatch({
       #   local_kern_smooth(Lt = Lt_train, Ly = Ly_train, newt = Lt_test, method = method,
       #                     bw = bw, kernel = kernel, k2 = delta, ...)
