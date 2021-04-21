@@ -288,6 +288,8 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
 #' @param ... parameters are same with \code{local_kern_smooth()}.
 #'
 #' @return delta
+#'
+#' @import Rcpp
 #' @import foreach
 #' @import dplyr
 #' @import doParallel
