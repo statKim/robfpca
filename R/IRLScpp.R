@@ -349,7 +349,7 @@ delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechn
                                  fold = rep(1:K, length(delta_cand)))
 
     cv_error <- foreach::foreach(i = 1:nrow(delta_fold_mat), .combine = "c",
-                                 .export = c("local_kern_smooth"),
+                                 # .export = c("local_kern_smooth"),
                                  .packages = c("robfpca"),
                                  .errorhandling = "pass") %dopar% {
       delta <- delta_fold_mat$delta_cand[i]   # bandwidth candidate
