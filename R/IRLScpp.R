@@ -337,7 +337,7 @@ delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechn
   if (ncores > 1) {
     # Parallel computing setting
     if (ncores > parallel::detectCores()) {
-      ncores <- parallel::detectCores() - 3
+      ncores <- parallel::detectCores() - 1
       warning(paste0("ncores is too large. We now use", ncores, " cores."))
     }
     # ncores <- detectCores() - 3
