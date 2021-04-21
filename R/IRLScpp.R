@@ -80,27 +80,27 @@ local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM"
 
       return(beta[1, ])
     })
-  } else if (method == "WRM") {   # robfilter package
-    # robfilter
-    if (kernel == "epanechnikov") {
-      kern <- 2
-    } else if (kernel == "gauss") {
-      kern <- 3
-    }
-    wrm.obj <- robfilter::wrm.smooth(Lt,
-                                     Ly,
-                                     h = bw,
-                                     xgrid = newt,
-                                     weight = kern)
-    mu_hat <- wrm.obj$level
+  } else if (method == "WRM") {   # robfilter package or C++
+    # # robfilter
+    # if (kernel == "epanechnikov") {
+    #   kern <- 2
+    # } else if (kernel == "gauss") {
+    #   kern <- 3
+    # }
+    # wrm.obj <- robfilter::wrm.smooth(Lt,
+    #                                  Ly,
+    #                                  h = bw,
+    #                                  xgrid = newt,
+    #                                  weight = kern)
+    # mu_hat <- wrm.obj$level
 
-    # # C++
-    # wrm.obj <- wrm_smooth(x = Lt,
-    #                       y = Ly,
-    #                       h = bw,
-    #                       xgrid = newt,
-    #                       kernel = kernel)
-    # mu_hat <- wrm.obj$mu
+    # C++
+    wrm.obj <- wrm_smooth(x = Lt,
+                          y = Ly,
+                          h = bw,
+                          xgrid = newt,
+                          kernel = kernel)
+    mu_hat <- wrm.obj$mu
   }
 
   return( as.numeric(mu_hat) )
@@ -122,8 +122,12 @@ local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM"
 #' @param ... parameters are same with \code{local_kern_smooth()}.
 #'
 #' @return bandwidth
-#' @import foreach
-#' @import dplyr
+#'
+#' @import Rcpp
+#' @importFrom foreach %dopar% foreach
+#' @importFrom dplyr %>% group_by summarise
+#' @importFrom doParallel registerDoParallel
+#' @importFrom parallel detectCores makeCluster stopCluster
 #'
 #' @export
 bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechnikov",
@@ -177,9 +181,9 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
                               fold = rep(1:K, length(bw_cand)))
 
     cv_error <- foreach::foreach(i = 1:nrow(bw_fold_mat), .combine = "c",
-                                 .export = c("local_kern_smooth"),
+                                 # .export = c("local_kern_smooth"),
                                  # .noexport = c("locpolysmooth","IRLScpp","get_positive_elements"),
-                                 .packages = c("robfilter"),
+                                 .packages = c("robfpca"),
                                  .errorhandling = "pass") %dopar% {
 
       bw <- bw_fold_mat$bw_cand[i]   # bandwidth candidate
@@ -221,8 +225,8 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
 
     bw_fold_mat$cv_error <- cv_error
     cv_obj <- bw_fold_mat %>%
-      group_by(bw_cand) %>%
-      summarise(cv_error = sum(cv_error))
+      dplyr::group_by(bw_cand) %>%
+      dplyr::summarise(cv_error = sum(cv_error))
 
     bw <- list(selected_bw = cv_obj$bw_cand[ which.min(cv_obj$cv_error) ],
                cv.error = as.data.frame(cv_obj))
@@ -290,10 +294,10 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
 #' @return delta
 #'
 #' @import Rcpp
-#' @import foreach
-#' @import dplyr
-#' @import doParallel
-#' @import parallel
+#' @importFrom foreach %dopar% foreach
+#' @importFrom dplyr %>% group_by summarise
+#' @importFrom doParallel registerDoParallel
+#' @importFrom parallel detectCores makeCluster stopCluster
 #'
 #' @export
 delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechnikov",
@@ -393,8 +397,8 @@ delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechn
 
     delta_fold_mat$cv_error <- cv_error
     cv_obj <- delta_fold_mat %>%
-      group_by(delta_cand) %>%
-      summarise(cv_error = sum(cv_error))
+      dplyr::group_by(delta_cand) %>%
+      dplyr::summarise(cv_error = sum(cv_error))
 
     delta <- list(selected_delta = cv_obj$delta_cand[ which.min(cv_obj$cv_error) ],
                   cv.error = as.data.frame(cv_obj))
