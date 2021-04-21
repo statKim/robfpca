@@ -9,10 +9,10 @@ meanfunc.rob(
   Ly,
   newt = NULL,
   method = c("L2", "Huber", "WRM", "Bisquare"),
-  bw = NULL,
   kernel = "epanechnikov",
+  bw = NULL,
+  delta = NULL,
   deg = 1,
-  k2 = 1.345,
   ncores = 1,
   cv_delta_loss = "L1",
   cv_bw_loss = "HUBER",
@@ -29,13 +29,13 @@ meanfunc.rob(
 
 \item{method}{"huber", "WRM" are supported}
 
-\item{bw}{a bandwidth}
-
 \item{kernel}{a kernel function for kernel smoothing ("epanechnikov", "gauss" are supported.)}
 
-\item{deg}{a numeric scalar of polynomial degrees for the kernel smoother}
+\item{bw}{a bandwidth}
 
-\item{k2}{If method == "Huber", it uses for $\\rho$ function in Huber loss.}
+\item{delta}{If method == "Huber", it uses for $\\rho$ function in Huber loss.}
+
+\item{deg}{a numeric scalar of polynomial degrees for the kernel smoother}
 
 \item{ncores}{If ncores > 1, it implements \code{foreach()} in \code{doParallel} for CV.}
 
@@ -46,6 +46,20 @@ meanfunc.rob(
 \item{cv_K}{a number of folds for K-fold cross-validation}
 
 \item{...}{additional options}
+}
+\value{
+a \code{meanfunc.rob} object contatining follows:
+\item{t}{a vector containing unlist(Lt)}
+\item{y}{a vector containing unlist(Ly)}
+\item{n}{a number of functional trajectories}
+\item{method}{a method used for obtaining a mean function}
+\item{kernel}{a kernel used for local linear smoothing}
+\item{bw}{a bandwidth}
+\item{delta}{a cuf-off value in M-type loss function. ("HUBER")}
+\item{deg}{a degree of polnomials}
+\item{domain}{a range of timepoints}
+\item{yend}{yend}
+\item{cv_optns}{a list containing options of K-fold cross-validation. (\code{K} = \code{cv_K}, \code{ncore} = \code{ncores}, \code{delta_loss} = \code{cv_delta_loss}, \code{bw_loss} = \code{cv_bw_loss})}
 }
 \description{
 Local polynomial kernel smoothing with huber loss (mean estimator)

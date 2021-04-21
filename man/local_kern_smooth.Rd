@@ -9,11 +9,11 @@ local_kern_smooth(
   Ly,
   newt = NULL,
   method = c("L2", "HUBER", "WRM", "BISQUARE"),
+  kernel = "epanechnikov",
   bw = NULL,
+  delta = 1.345,
   deg = 1,
   ncores = 1,
-  kernel = "epanechnikov",
-  k2 = 1.345,
   ...
 )
 }
@@ -26,22 +26,22 @@ local_kern_smooth(
 
 \item{method}{"Huber" or "WRM" or "Bisquare"}
 
+\item{kernel}{a kernel function for kernel smoothing ("epan", "gauss" are supported.)}
+
 \item{bw}{bandwidth}
+
+\item{delta}{cut-off value for Huber function}
 
 \item{deg}{a degree of polynomial}
 
-\item{ncores}{number of cores for k-fold cross-validation}
-
-\item{kernel}{a kernel function for kernel smoothing ("epan", "gauss" are supported.)}
-
-\item{k2}{cut-off value for Huber function
+\item{ncores}{number of cores for k-fold cross-validation
 For loss = "Huber", it uses \code{rlm()} in \code{MASS} and fits the robust regression with Huber loss.
-So additional parameters of \code{rlm()} can be applied. (k2, maxit, ...)}
+So additional parameters of \code{rlm()} can be applied. (delta, maxit, ...)}
 
 \item{...}{additional parameters}
 }
 \value{
-a smoothed vector
+a vector containing the smoothed functional trajectory from the local polynomial smoothing
 }
 \description{
 Robust local polynomial smoothing via Huber function using iteratively re-weighted least sqruares (IRLS) algorithm

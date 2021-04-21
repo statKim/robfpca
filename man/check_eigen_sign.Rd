@@ -11,6 +11,9 @@ check_eigen_sign(eig_vec, target)
 
 \item{target}{a vector (n x 1) or matrix (n x q) containing true (or want to convert) eigenvectors}
 }
+\value{
+\code{eig_vec} modified to correspond to the sign of \code{target}
+}
 \description{
 Change the sign of eigenvectors to target eigenvectors
 }

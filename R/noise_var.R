@@ -24,7 +24,6 @@ sigma2.rob <- function(t, y, h = NULL) {
             stop('h is too large')
         }
 
-
         A0A1 <- sapply(1:n, function(i){
             tobs <- t[[i]]
             y <- y[[i]]
@@ -42,6 +41,7 @@ sigma2.rob <- function(t, y, h = NULL) {
                     }
                 }
             }
+
             return(c(A0/(m*(m-1)),
                      A1/(m*(m-1)),
                      B/(m*(m-1))))
@@ -50,7 +50,6 @@ sigma2.rob <- function(t, y, h = NULL) {
         # mean((A0A1[1, ] - A0A1[2, ])/A0A1[3, ])
         # mean( mean(A0A1[1, ] - A0A1[2, ]) / mean(A0A1[3, ]) )
         sig2 <- median(A0A1[1, ] - A0A1[2, ]) / median(A0A1[3, ])
-
     } else {
         stop('unsupported data type')
     }
@@ -107,6 +106,7 @@ select.sig2.rob.bw <- function(Lt, Ly, ss = NULL) {
                     }
                 }
             }
+
             return(v1)
         })
 

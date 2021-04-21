@@ -12,6 +12,16 @@
 #' @param weig weight
 #' @param ... additional options of \code{varfunc.rob()}
 #'
+#' @return a \code{covfunc.rob} object contatining as follows:
+#' \item{sig2}{a noise variance estimate}
+#' \item{theta}{a estiamted parameter in parametric correlation function}
+#' \item{mu.hat}{a estimated mean function corresponded to unlist(Lt)}
+#' \item{domain}{a range of timepoints}
+#' \item{mu}{a \code{meanfunc.rob} object}
+#' \item{sig2x}{a \code{varfunc.rob} object}
+#' \item{rho}{a parametric correlation function}
+#' \item{method}{a method used for obtaining a mean and variance function}
+#'
 #' @export
 #' @useDynLib robfpca
 covfunc.rob <- function(Lt,
@@ -19,7 +29,8 @@ covfunc.rob <- function(Lt,
                         newt = NULL,
                         method = c("Huber","WRM","Bisquare"),
                         mu = NULL,
-                        weig = NULL, ...) {
+                        weig = NULL,
+                        ...) {
 
     method <- toupper(method)
     if (!(method %in% c("HUBER","WRM","BISQUARE"))) {
@@ -49,7 +60,8 @@ covfunc.rob.huber <- function(Lt,
                               lb = NULL,
                               ub = NULL,
                               D = NULL,
-                              kernel = "epanechnikov", ...) {
+                              kernel = "epanechnikov",
+                              ...) {
 
     if (is.null(corf)) {
         corf <- function(x, y, theta) {
@@ -146,12 +158,13 @@ covfunc.rob.huber <- function(Lt,
 }
 
 
-### Predict covariance at new time points
 #' Predict covariance at new time points
 #'
 #' @param object an object from \code{covfunc.rob()}
-#' @param newt new time points to predict
-#' @param ... not used
+#' @param newt a vector containing timepoints to predict
+#' @param ... does not needed
+#'
+#' @return a matrix containing a covariance function corresponds to \code{newt}
 #'
 #' @importFrom stats predict
 #'
@@ -178,17 +191,17 @@ predict.covfunc.rob <- function(object, newt, ...) {
 }
 
 
-### estimate the window width of snippets
-estimate.delta <- function(Lt) {
-    if (is.list(Lt)) {
-        tmp <- lapply(Lt, function(v) max(v)-min(v))
-        return(max(unlist(tmp)))
-    } else if (is.vector(Lt)) {
-        return(max(Lt)-min(Lt))
-    } else {
-        stop('unsupported type of Lt')
-    }
-}
+# ### estimate the window width of snippets
+# estimate.delta <- function(Lt) {
+#     if (is.list(Lt)) {
+#         tmp <- lapply(Lt, function(v) max(v)-min(v))
+#         return(max(unlist(tmp)))
+#     } else if (is.vector(Lt)) {
+#         return(max(Lt)-min(Lt))
+#     } else {
+#         stop('unsupported type of Lt')
+#     }
+# }
 
 
 

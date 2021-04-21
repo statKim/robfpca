@@ -9,9 +9,12 @@
 \arguments{
 \item{object}{an object from \code{varfunc.rob()}}
 
-\item{newt}{new time points to predict}
+\item{newt}{a vector containing timepoints to predict}
 
-\item{...}{not used}
+\item{...}{does not needed}
+}
+\value{
+a vector containing a variance function corresponds to \code{newt}
 }
 \description{
 Predict variance at new time points

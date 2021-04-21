@@ -9,9 +9,9 @@ bw.local_kern_smooth(
   Ly,
   method = "HUBER",
   kernel = "epanechnikov",
-  cv_loss = "HUBER",
-  k2 = 1.345,
+  delta = 1.345,
   bw_cand = NULL,
+  cv_loss = "HUBER",
   K = 5,
   ncores = 1,
   ...
@@ -26,11 +26,11 @@ bw.local_kern_smooth(
 
 \item{kernel}{a kernel function for kernel smoothing ("epan", "gauss" are supported.)}
 
-\item{cv_loss}{"Huber" or "L1" or "L2"}
-
-\item{k2}{cut-off value for Huber function}
+\item{delta}{cut-off value for Huber function}
 
 \item{bw_cand}{user defined bandwidth candidates for CV}
+
+\item{cv_loss}{"Huber" or "L1" or "L2"}
 
 \item{K}{the number of folds}
 

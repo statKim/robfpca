@@ -2,7 +2,7 @@
 % Please edit documentation in R/eigen.R
 \name{get_eigen}
 \alias{get_eigen}
-\title{Get eigen analysis results}
+\title{Get eigenanalysis results}
 \usage{
 get_eigen(cov, grid)
 }
@@ -11,6 +11,12 @@ get_eigen(cov, grid)
 
 \item{grid}{a vector containing observed time points. (same with dimension of \code{cov})}
 }
+\value{
+a list contatining follows:
+\item{lambda}{a vector of positive eigenvalues}
+\item{phi}{a matrix containing columnwise eigenvectors}
+\item{PVE}{a vector containing proportion of variance explained}
+}
 \description{
-Get eigen analysis results
+Get eigenanalysis results including eigenvalues, corresponding eigenvectors, and a proportion of variance explained (PVE)
 }

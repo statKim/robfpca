@@ -7,11 +7,14 @@
 \method{predict}{meanfunc.rob}(object, newt, ...)
 }
 \arguments{
-\item{object}{an object from \code{meanfunc.rob()}}
+\item{object}{an \code{meanfunc.rob} object from \code{meanfunc.rob()}}
 
-\item{newt}{new time points to predict}
+\item{newt}{a vector containing timepoints to predict}
 
-\item{...}{not used}
+\item{...}{does not needed}
+}
+\value{
+a vector containing a mean function corresponds to \code{newt}
 }
 \description{
 Predict mean at new time points

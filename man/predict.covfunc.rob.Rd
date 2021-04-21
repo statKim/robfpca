@@ -9,9 +9,12 @@
 \arguments{
 \item{object}{an object from \code{covfunc.rob()}}
 
-\item{newt}{new time points to predict}
+\item{newt}{a vector containing timepoints to predict}
 
-\item{...}{not used}
+\item{...}{does not needed}
+}
+\value{
+a matrix containing a covariance function corresponds to \code{newt}
 }
 \description{
 Predict covariance at new time points

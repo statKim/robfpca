@@ -9,9 +9,9 @@ delta.local_kern_smooth(
   Ly,
   method = "HUBER",
   kernel = "epanechnikov",
-  cv_loss = "L1",
   bw = NULL,
   delta_cand = NULL,
+  cv_loss = "L1",
   K = 5,
   ncores = 1,
   ...
@@ -26,11 +26,11 @@ delta.local_kern_smooth(
 
 \item{kernel}{a kernel function for kernel smoothing ("epan", "gauss" are supported.)}
 
-\item{cv_loss}{"L1" or "L2"}
-
 \item{bw}{bandwidth}
 
 \item{delta_cand}{user defined delta candidates for CV}
+
+\item{cv_loss}{"L1" or "L2"}
 
 \item{K}{the number of folds}
 

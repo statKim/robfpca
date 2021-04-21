@@ -29,6 +29,17 @@ covfunc.rob(
 
 \item{...}{additional options of \code{varfunc.rob()}}
 }
+\value{
+a \code{covfunc.rob} object contatining as follows:
+\item{sig2}{a noise variance estimate}
+\item{theta}{a estiamted parameter in parametric correlation function}
+\item{mu.hat}{a estimated mean function corresponded to unlist(Lt)}
+\item{domain}{a range of timepoints}
+\item{mu}{a \code{meanfunc.rob} object}
+\item{sig2x}{a \code{varfunc.rob} object}
+\item{rho}{a parametric correlation function}
+\item{method}{a method used for obtaining a mean and variance function}
+}
 \description{
 Covariance estimation via semiparametric approach
 }

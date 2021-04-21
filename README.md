@@ -1,8 +1,8 @@
 # robfpca
 
-## Robust covariance estimation and principal component analysis for functional snippets
+Robust principal component analysis for functional snippets
 
-### Installation
+## Installation
 ```r
 # install.packages("devtools")
 devtools::install_github("statKim/robfpca")

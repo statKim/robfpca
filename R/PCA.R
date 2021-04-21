@@ -12,7 +12,14 @@
 #'
 #' @export
 #' @useDynLib robfpca
-funPCA <- function(Lt, Ly, mu, cov, sig2 = NULL, work.grid, K = NULL, PVE = 0.99) {
+funPCA <- function(Lt,
+                   Ly,
+                   mu,
+                   cov,
+                   sig2 = NULL,
+                   work.grid,
+                   K = NULL,
+                   PVE = 0.99) {
     n <- length(Lt)   # number of observations
 
     # eigen analysis
@@ -36,16 +43,26 @@ funPCA <- function(Lt, Ly, mu, cov, sig2 = NULL, work.grid, K = NULL, PVE = 0.99
     # complete curves - calculate matrix multiplication
     ind_complete <- sapply(Lt, function(t) { identical(work.grid, t) })
     complete_curves <- list2rbind(Ly[ind_complete])   # combine complete curves
-    PC_score[ind_complete, ] <- get_CE_score(work.grid, complete_curves,
-                                             mu, cov,
-                                             sig2, eig.obj, K, work.grid)
+    PC_score[ind_complete, ] <- get_CE_score(work.grid,
+                                             complete_curves,
+                                             mu,
+                                             cov,
+                                             sig2,
+                                             eig.obj,
+                                             K,
+                                             work.grid)
 
     # snippets or partially observed curves - calculate individually
     ind_snippet <- (1:n)[!ind_complete]
     for (i in ind_snippet) {
-        PC_score[i, ] <- get_CE_score(Lt[[i]], Ly[[i]],
-                                      mu, cov,
-                                      sig2, eig.obj, K, work.grid)
+        PC_score[i, ] <- get_CE_score(Lt[[i]],
+                                      Ly[[i]],
+                                      mu,
+                                      cov,
+                                      sig2,
+                                      eig.obj,
+                                      K,
+                                      work.grid)
     }
     # obs.grid <- sort(unique(unlist(Lt)))
     # PC_score <- sapply(1:n, function(i) {
@@ -104,9 +121,14 @@ predict.funPCA <- function(object, newdata = NULL, K = NULL, ...) {
 
         pc.score <- matrix(NA, n, K)
         for (i in 1:n) {
-            pc.score[i, ] <- get_CE_score(Lt[[i]], Ly[[i]],
-                                          funPCA.obj$mu, funPCA.obj$cov, funPCA.obj$sig2,
-                                          funPCA.obj$eig.obj, K, funPCA.obj$work.grid)
+            pc.score[i, ] <- get_CE_score(Lt[[i]],
+                                          Ly[[i]],
+                                          funPCA.obj$mu,
+                                          funPCA.obj$cov,
+                                          funPCA.obj$sig2,
+                                          funPCA.obj$eig.obj,
+                                          K,
+                                          funPCA.obj$work.grid)
         }
     }
 

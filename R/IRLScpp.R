@@ -6,20 +6,28 @@
 #' @param Ly  a list of vectors or a vector containing observations for all curves
 #' @param newt a vector containing time points to estimate
 #' @param method "Huber" or "WRM" or "Bisquare"
-#' @param bw bandwidth
 #' @param kernel a kernel function for kernel smoothing ("epan", "gauss" are supported.)
+#' @param bw bandwidth
+#' @param delta cut-off value for Huber function
 #' @param deg a degree of polynomial
 #' @param ncores number of cores for k-fold cross-validation
-#' @param k2 cut-off value for Huber function
 #' For loss = "Huber", it uses \code{rlm()} in \code{MASS} and fits the robust regression with Huber loss.
-#' So additional parameters of \code{rlm()} can be applied. (k2, maxit, ...)
+#' So additional parameters of \code{rlm()} can be applied. (delta, maxit, ...)
 #' @param ... additional parameters
 #'
-#' @return a smoothed vector
+#' @return a vector containing the smoothed functional trajectory from the local polynomial smoothing
+#'
 #' @export
-local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM","BISQUARE"),
-                              bw = NULL, deg = 1, ncores = 1,
-                              kernel = "epanechnikov", k2 = 1.345, ...) {
+local_kern_smooth <- function(Lt,
+                              Ly,
+                              newt = NULL,
+                              method = c("L2","HUBER","WRM","BISQUARE"),
+                              kernel = "epanechnikov",
+                              bw = NULL,
+                              delta = 1.345,
+                              deg = 1,
+                              ncores = 1,
+                              ...) {
   method <- toupper(method)
   if (!(method %in% c("L2","HUBER","WRM","BISQUARE"))) {
     stop(paste0(method, " is not provided. Check method parameter."))
@@ -30,8 +38,12 @@ local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM"
     if (!(is.list(Lt) & is.list(Ly))) {
       stop("Lt or Ly are not list type. If bw is NULL, 5-fold CV are performed but it is needed list type.")
     }
-    bw <- bw.local_kern_smooth(Lt = Lt, Ly = Ly, method = method, kernel = kernel,
-                               ncores = ncores, k2 = k2)
+    bw <- bw.local_kern_smooth(Lt = Lt,
+                               Ly = Ly,
+                               method = method,
+                               kernel = kernel,
+                               ncores = ncores,
+                               delta = delta)
   }
 
   if (is.list(Lt) | is.list(Ly)) {
@@ -52,7 +64,7 @@ local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM"
                             newt = newt,
                             kernel = kernel,
                             bw = bw,
-                            k = k2,
+                            k = delta,
                             deg = deg)
   } else if (method == "L2") {   # squared loss
     w <- 1/length(Lt)
@@ -114,9 +126,9 @@ local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM"
 #' @param Ly a list of vectors containing observations for each curve
 #' @param method "Huber" or "WRM" or "Bisquare"
 #' @param kernel a kernel function for kernel smoothing ("epan", "gauss" are supported.)
-#' @param cv_loss "Huber" or "L1" or "L2"
-#' @param k2 cut-off value for Huber function
+#' @param delta cut-off value for Huber function
 #' @param bw_cand user defined bandwidth candidates for CV
+#' @param cv_loss "Huber" or "L1" or "L2"
 #' @param K the number of folds
 #' @param ncores If ncores > 1, it implements \code{foreach()} in \code{doParallel} for CV.
 #' @param ... parameters are same with \code{local_kern_smooth()}.
@@ -130,9 +142,16 @@ local_kern_smooth <- function(Lt, Ly, newt = NULL, method = c("L2","HUBER","WRM"
 #' @importFrom parallel detectCores makeCluster stopCluster
 #'
 #' @export
-bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechnikov",
-                                 cv_loss = "HUBER", k2 = 1.345, bw_cand = NULL,
-                                 K = 5,  ncores = 1, ...) {
+bw.local_kern_smooth <- function(Lt,
+                                 Ly,
+                                 method = "HUBER",
+                                 kernel = "epanechnikov",
+                                 delta = 1.345,
+                                 bw_cand = NULL,
+                                 cv_loss = "HUBER",
+                                 K = 5,
+                                 ncores = 1,
+                                 ...) {
   cv_loss <- toupper(cv_loss)
   if (!(cv_loss %in% c("HUBER","L1","L2"))) {
     stop(paste0(cv_loss, " is not provided. Check cv_loss parameter."))
@@ -169,20 +188,20 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
   if (ncores > 1) {
     # Parallel computing setting
     if (ncores > parallel::detectCores()) {
-      ncores <- parallel::detectCores() - 3
-      warning(paste0("ncores is too large. We now use", ncores, " cores."))
+      ncores <- parallel::detectCores() - 1
+      warning(paste0("ncores is too large. We now use ", ncores, " cores."))
     }
     # ncores <- detectCores() - 3
-    cl <-parallel::makeCluster(ncores)
+    cl <- parallel::makeCluster(ncores)
     doParallel::registerDoParallel(cl)
 
     # matrix of bw_cand and fold
     bw_fold_mat <- data.frame(bw_cand = rep(bw_cand, each = K),
                               fold = rep(1:K, length(bw_cand)))
 
-    cv_error <- foreach::foreach(i = 1:nrow(bw_fold_mat), .combine = "c",
+    cv_error <- foreach::foreach(i = 1:nrow(bw_fold_mat),
+                                 .combine = "c",
                                  # .export = c("local_kern_smooth"),
-                                 # .noexport = c("locpolysmooth","IRLScpp","get_positive_elements"),
                                  .packages = c("robfpca"),
                                  .errorhandling = "pass") %dopar% {
 
@@ -195,8 +214,14 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
       Lt_test <- Lt[ folds[[k]] ]
       Ly_test <- Ly[ folds[[k]] ]
 
-      y_hat <- local_kern_smooth(Lt = Lt_train, Ly = Ly_train, newt = Lt_test, method = method,
-                                 bw = bw, kernel = kernel, k2 = k2, ...)
+      y_hat <- local_kern_smooth(Lt = Lt_train,
+                                 Ly = Ly_train,
+                                 newt = Lt_test,
+                                 method = method,
+                                 bw = bw,
+                                 kernel = kernel,
+                                 delta = delta,
+                                 ...)
       # y_hat <- tryCatch({
       #   local_kern_smooth_cpp(Lt = Lt_train, Ly = Ly_train, newt = Lt_test, method = method,
       #                         bw = bw, kernel = kernel, k2 = k2, ...)
@@ -213,7 +238,7 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
         err <- sum((y - y_hat)^2)
       } else if (cv_loss == "HUBER") {   # Huber errors
         a <- abs(y - y_hat)
-        err_huber <- ifelse(a > k2, k2*(a - k2/2), a^2/2)
+        err_huber <- ifelse(a > delta, delta*(a - delta/2), a^2/2)
         err <- sum(err_huber)
       } else if (cv_loss == "L1") {   # absolute errors
         err <- sum(abs(y - y_hat))
@@ -239,8 +264,14 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
       Ly_test <- Ly[ folds[[k]] ]
 
       for (i in 1:length(bw_cand)) {
-        y_hat <- local_kern_smooth(Lt = Lt_train, Ly = Ly_train, newt = Lt_test, method = method,
-                                   bw = bw_cand[i], kernel = kernel, k2 = k2, ...)
+        y_hat <- local_kern_smooth(Lt = Lt_train,
+                                   Ly = Ly_train,
+                                   newt = Lt_test,
+                                   method = method,
+                                   bw = bw_cand[i],
+                                   kernel = kernel,
+                                   delta = delta,
+                                   ...)
         # y_hat <- tryCatch({
         #   local_kern_smooth_cpp(Lt = Lt_train, Ly = Ly_train, newt = Lt_test, method = method,
         #                         bw = bw_cand[i], kernel = kernel, k2 = k2, ...)
@@ -260,7 +291,7 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
           cv_error[i] <- cv_error[i] + sum((y - y_hat)^2)   # squared errors
         } else if (cv_loss == "HUBER") {
           a <- abs(y - y_hat)
-          err_huber <- ifelse(a > k2, k2*(a - k2/2), a^2/2)
+          err_huber <- ifelse(a > delta, delta*(a - delta/2), a^2/2)
           cv_error[i] <- cv_error[i] + sum(err_huber)
         } else if (cv_loss == "L1") {   # absolute errors
           cv_error[i] <- cv_error[i] + sum(abs(y - y_hat))
@@ -284,9 +315,9 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
 #' @param Ly a list of vectors containing observations for each curve
 #' @param method "Huber" or "WRM" or "Bisquare"
 #' @param kernel a kernel function for kernel smoothing ("epan", "gauss" are supported.)
-#' @param cv_loss "L1" or "L2"
 #' @param bw bandwidth
 #' @param delta_cand user defined delta candidates for CV
+#' @param cv_loss "L1" or "L2"
 #' @param K the number of folds
 #' @param ncores If ncores > 1, it implements \code{foreach()} in \code{doParallel} for CV.
 #' @param ... parameters are same with \code{local_kern_smooth()}.
@@ -300,9 +331,16 @@ bw.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechniko
 #' @importFrom parallel detectCores makeCluster stopCluster
 #'
 #' @export
-delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechnikov",
-                                    cv_loss = "L1", bw = NULL, delta_cand = NULL,
-                                    K = 5, ncores = 1, ...) {
+delta.local_kern_smooth <- function(Lt,
+                                    Ly,
+                                    method = "HUBER",
+                                    kernel = "epanechnikov",
+                                    bw = NULL,
+                                    delta_cand = NULL,
+                                    cv_loss = "L1",
+                                    K = 5,
+                                    ncores = 1,
+                                    ...) {
   cv_loss <- toupper(cv_loss)
   if (!(cv_loss %in% c("L1","L2"))) {
     stop(paste0(cv_loss, " is not provided. Check cv_loss parameter."))
@@ -344,7 +382,7 @@ delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechn
     # Parallel computing setting
     if (ncores > parallel::detectCores()) {
       ncores <- parallel::detectCores() - 1
-      warning(paste0("ncores is too large. We now use", ncores, " cores."))
+      warning(paste0("ncores is too large. We now use ", ncores, " cores."))
     }
     # ncores <- detectCores() - 3
     cl <- parallel::makeCluster(ncores)
@@ -354,7 +392,8 @@ delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechn
     delta_fold_mat <- data.frame(delta_cand = rep(delta_cand, each = K),
                                  fold = rep(1:K, length(delta_cand)))
 
-    cv_error <- foreach::foreach(i = 1:nrow(delta_fold_mat), .combine = "c",
+    cv_error <- foreach::foreach(i = 1:nrow(delta_fold_mat),
+                                 .combine = "c",
                                  # .export = c("local_kern_smooth"),
                                  .packages = c("robfpca"),
                                  .errorhandling = "pass") %dopar% {
@@ -367,8 +406,14 @@ delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechn
       Lt_test <- Lt[ folds[[k]] ]
       Ly_test <- Ly[ folds[[k]] ]
 
-      y_hat <- local_kern_smooth(Lt = Lt_train, Ly = Ly_train, newt = Lt_test, method = method,
-                                 bw = bw, k2 = delta, kernel = kernel, ...)
+      y_hat <- local_kern_smooth(Lt = Lt_train,
+                                 Ly = Ly_train,
+                                 newt = Lt_test,
+                                 method = method,
+                                 kernel = kernel,
+                                 bw = bw,
+                                 delta = delta,
+                                 ...)
       # y_hat <- tryCatch({
       #   local_kern_smooth(Lt = Lt_train, Ly = Ly_train, newt = Lt_test, method = method,
       #                     bw = bw, kernel = kernel, k2 = delta, ...)
@@ -411,8 +456,14 @@ delta.local_kern_smooth <- function(Lt, Ly, method = "HUBER", kernel = "epanechn
       Ly_test <- Ly[ folds[[k]] ]
 
       for (i in 1:length(delta_cand)) {
-        y_hat <- local_kern_smooth(Lt = Lt_train, Ly = Ly_train, newt = Lt_test, method = method,
-                                   bw = bw, k2 = delta_cand[i], kernel = kernel, ...)
+        y_hat <- local_kern_smooth(Lt = Lt_train,
+                                   Ly = Ly_train,
+                                   newt = Lt_test,
+                                   method = method,
+                                   kernel = kernel,
+                                   bw = bw,
+                                   delta = delta_cand[i],
+                                   ...)
         y <- unlist(Ly_test)
         if (cv_loss == "L2") {
           cv_error[i] <- cv_error[i] + sum((y - y_hat)^2)   # squared errors

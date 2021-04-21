@@ -1,8 +1,14 @@
-
-#' Get eigen analysis results
+#' Get eigenanalysis results
+#'
+#' Get eigenanalysis results including eigenvalues, corresponding eigenvectors, and a proportion of variance explained (PVE)
 #'
 #' @param cov a matrix of covariance matrix
 #' @param grid a vector containing observed time points. (same with dimension of \code{cov})
+#'
+#' @return a list contatining follows:
+#' \item{lambda}{a vector of positive eigenvalues}
+#' \item{phi}{a matrix containing columnwise eigenvectors}
+#' \item{PVE}{a vector containing proportion of variance explained}
 #'
 #' @export
 get_eigen <- function(cov, grid) {
@@ -33,6 +39,8 @@ get_eigen <- function(cov, grid) {
 #'
 #' @param eig_vec a vector (n x 1) or matrix (n x q) containing estimated eigenvectors
 #' @param target a vector (n x 1) or matrix (n x q) containing true (or want to convert) eigenvectors
+#'
+#' @return \code{eig_vec} modified to correspond to the sign of \code{target}
 #'
 #' @export
 check_eigen_sign <- function(eig_vec, target) {

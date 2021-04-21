@@ -2,22 +2,13 @@
 ### Utill functions
 ##########################################
 
-
-#' Get function name in the global environment
-#'
-#' @export
-fun2char <- function() {
-    env <- ls(envir = .GlobalEnv)
-    ind <- sapply(env, function(x) { is.function(get(x)) })
-    return(env[ind])
-}
-
-
 #' Calculate Intergrated Squared Errors (ISE)
 #'
 #' @param x vectors or matrices to compare (y-axis)
 #' @param x_hat vectors or matrices to compare (y-axis)
 #' @param grid corresponding observed grid (x-axis)
+#'
+#' @return a value of ISE
 #'
 #' @export
 get_ise <- function(x, x_hat, grid) {
@@ -47,10 +38,12 @@ get_ise <- function(x, x_hat, grid) {
 }
 
 
-#' Calculate raw derivatives
+#' Calculate discrete derivatives
 #'
 #' @param f_x a vector of f(x)
 #' @param x a vector of x
+#'
+#' @return a vector containing derivatives of \code{f_x}
 #'
 #' @export
 get_deriv <- function(f_x, x) {
@@ -64,6 +57,8 @@ get_deriv <- function(f_x, x) {
 #'
 #' @param f_x a vector of f(x)
 #' @param x a vector of x
+#'
+#' @return a logical vector indicating \code{f_x} is convex on each \code{x}
 #'
 #' @export
 is.convex <- function(f_x, x) {
@@ -79,6 +74,8 @@ is.convex <- function(f_x, x) {
 #' Get design points
 #'
 #' @param Lt a list of vectors containing time points for each curve
+#'
+#' @return a matrix containing 2 columns (each row is a point which is a pair of observed timepoints)
 #'
 #' @export
 get_design_index <- function(Lt) {
@@ -109,6 +106,8 @@ get_design_index <- function(Lt) {
 #' Rbind the list containing matrix having same number of columns
 #'
 #' @param x a list containing matrices having same number of columns
+#'
+#' @return a matrix concatenating all matrices row-wise in a list
 #'
 #' @export
 list2rbind <- function(x) {

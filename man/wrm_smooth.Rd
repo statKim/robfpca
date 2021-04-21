@@ -2,7 +2,7 @@
 % Please edit documentation in R/WRMcpp.R
 \name{wrm_smooth}
 \alias{wrm_smooth}
-\title{Weighted repeated median smoothing}
+\title{Weighted repeated median (WRM) smoothing}
 \usage{
 wrm_smooth(x, y, h, xgrid = NULL, kernel = "epanechnikov")
 }
@@ -18,12 +18,12 @@ wrm_smooth(x, y, h, xgrid = NULL, kernel = "epanechnikov")
 \item{kernel}{"epanechnikov" and "gauss" are supported.}
 }
 \value{
-a smoothed vector
+a vector containing the smoothed functional trajectory from weighted repeated median (WRM) smoothing
 }
 \description{
 It is the same algorithm of \code{wrm.smooth()} in \code{robfilter} pacakges.
-For fast computation, transform the R code to C++.
-The parameters of a function are the same with "wrm.smooth()" except on "kernel".
+For fast computation, the function is written in C++.
+The parameters of a function are the same with \code{wrm.smooth()} except on \code{kernel}.
 }
 \references{
 \cite{Fried, R., Einbeck, J., & Gather, U. (2007). Weighted repeated median smoothing and filtering. Journal of the American Statistical Association, 102(480), 1300-1308.}

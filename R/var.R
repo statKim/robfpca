@@ -12,7 +12,20 @@
 #' @param sig2 a noise variance estimator
 #' @param ... additional options of \code{meanfunc.rob()}
 #'
-#' @import dplyr
+#' @return a \code{varfunc.rob} object contatining \code{sig2} which is a noise variance estimate and \code{obj} which is containing as follows:
+#' \item{t}{a vector containing unlist(Lt)}
+#' \item{y}{a vector containing unlist(Ly)}
+#' \item{n}{a number of functional trajectories}
+#' \item{method}{a method used for obtaining a variance function}
+#' \item{kernel}{a kernel used for local linear smoothing}
+#' \item{bw}{a bandwidth}
+#' \item{delta}{a cuf-off value in M-type loss function. ("HUBER")}
+#' \item{deg}{a degree of polnomials}
+#' \item{domain}{a range of timepoints}
+#' \item{yend}{yend}
+#' \item{cv_optns}{a list containing options of K-fold cross-validation. (\code{K} = \code{cv_K}, \code{ncore} = \code{ncores}, \code{delta_loss} = \code{cv_delta_loss}, \code{bw_loss} = \code{cv_bw_loss})}
+#'
+#' @importFrom dplyr %>% group_by summarise
 #'
 #' @export
 #' @useDynLib robfpca
@@ -78,8 +91,10 @@ varfunc.rob <- function(Lt,
 #' Predict variance at new time points
 #'
 #' @param object an object from \code{varfunc.rob()}
-#' @param newt new time points to predict
-#' @param ... not used
+#' @param newt a vector containing timepoints to predict
+#' @param ... does not needed
+#'
+#' @return a vector containing a variance function corresponds to \code{newt}
 #'
 #' @importFrom stats predict
 #'
