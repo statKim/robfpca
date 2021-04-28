@@ -40,20 +40,27 @@ funPCA <- function(Lt,
     # - for loop is as fast as sapply!
     PC_score <- matrix(NA, n, K)
 
+    ## If there exist complete curves, compute by matrix mutliplication.
     # complete curves - calculate matrix multiplication
     ind_complete <- sapply(Lt, function(t) { identical(work.grid, t) })
-    complete_curves <- list2rbind(Ly[ind_complete])   # combine complete curves
-    PC_score[ind_complete, ] <- get_CE_score(work.grid,
-                                             complete_curves,
-                                             mu,
-                                             cov,
-                                             sig2,
-                                             eig.obj,
-                                             K,
-                                             work.grid)
+    if (sum(ind_complete) > 0) {
+        complete_curves <- list2rbind(Ly[ind_complete])   # combine complete curves
+        PC_score[ind_complete, ] <- get_CE_score(work.grid,
+                                                 complete_curves,
+                                                 mu,
+                                                 cov,
+                                                 sig2,
+                                                 eig.obj,
+                                                 K,
+                                                 work.grid)
+        # index of incomplete curves
+        ind_snippet <- (1:n)[!ind_complete]
+    } else {
+        # does not exist complete curves
+        ind_snippet <- 1:n
+    }
 
     # snippets or partially observed curves - calculate individually
-    ind_snippet <- (1:n)[!ind_complete]
     for (i in ind_snippet) {
         PC_score[i, ] <- get_CE_score(Lt[[i]],
                                       Ly[[i]],
@@ -64,12 +71,7 @@ funPCA <- function(Lt,
                                       K,
                                       work.grid)
     }
-    # obs.grid <- sort(unique(unlist(Lt)))
-    # PC_score <- sapply(1:n, function(i) {
-    #   # xi <- get_CE_score(Lt[[i]], Ly[[i]], mu, cov, sig2, eig.obj, K, work.grid, obs.grid)
-    #   xi <- get_CE_score(Lt[[i]], Ly[[i]], mu, cov, sig2, eig.obj, K, work.grid)
-    #   return(xi)
-    # })
+
 
     res <- list(
         lambda = eig.obj$lambda[1:K],
