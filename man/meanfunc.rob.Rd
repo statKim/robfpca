@@ -31,13 +31,15 @@ meanfunc.rob(
 
 \item{kernel}{a kernel function for kernel smoothing ("epanechnikov", "gauss" are supported.)}
 
-\item{bw}{a bandwidth}
+\item{bw}{a bandwidth.
+If bw = NULL, it is selected from K-fold cross-validation.}
 
-\item{delta}{If method == "Huber", it uses for $\\rho$ function in Huber loss.}
+\item{delta}{If method == "Huber", it uses for $\\rho$ function in Huber loss.
+If delta = NULL, it is selected from K-fold cross-validation.}
 
 \item{deg}{a numeric scalar of polynomial degrees for the kernel smoother}
 
-\item{ncores}{If ncores > 1, it implements \code{foreach()} in \code{doParallel} for CV.}
+\item{ncores}{a number of cores to implement \code{foreach()} in \code{doParallel} for CV.}
 
 \item{cv_delta_loss}{a loss function for K-fold cross-validation for delta in Huber function}
 

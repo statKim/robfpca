@@ -9,10 +9,12 @@
 #' @param newt a vector containing time points to estimate
 #' @param method "huber", "WRM" are supported
 #' @param kernel a kernel function for kernel smoothing ("epanechnikov", "gauss" are supported.)
-#' @param bw a bandwidth
+#' @param bw a bandwidth.
+#' If bw = NULL, it is selected from K-fold cross-validation.
 #' @param delta If method == "Huber", it uses for $\\rho$ function in Huber loss.
+#' If delta = NULL, it is selected from K-fold cross-validation.
 #' @param deg a numeric scalar of polynomial degrees for the kernel smoother
-#' @param ncores If ncores > 1, it implements \code{foreach()} in \code{doParallel} for CV.
+#' @param ncores a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.
 #' @param cv_delta_loss a loss function for K-fold cross-validation for delta in Huber function
 #' @param cv_bw_loss a loss function for K-fold cross-validation for bandwidth
 #' @param cv_K a number of folds for K-fold cross-validation
@@ -71,7 +73,7 @@ meanfunc.rob <- function(Lt,
 
     cv <- FALSE
     # 5-fold CV for delta in Huber function
-    if ((method %in% c("HUBER","BISQUARE")) && (is.null(delta) | ncores > 1)) {
+    if ((method %in% c("HUBER","BISQUARE")) && is.null(delta)) {
         print(paste0("delta is not specified. ", cv_K, "-fold CV is performed for delta in Huber function."))
         delta_cv_obj <- delta.local_kern_smooth(Lt = Lt,
                                                 Ly = Ly,
@@ -89,7 +91,7 @@ meanfunc.rob <- function(Lt,
     }
 
     # 5-fold CV for bandwidth
-    if (is.null(bw) | ncores > 1) {
+    if (is.null(bw)) {
         print(paste0("bw is not specified. ", cv_K, "-fold CV is performed for bandwidth."))
         bw_cv_obj <- bw.local_kern_smooth(Lt = Lt,
                                           Ly = Ly,
