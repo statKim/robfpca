@@ -107,10 +107,14 @@ predict.varfunc.rob <- function(object, newt, ...) {
     }
     res <- predict(R$obj, newt)
     res <- res - R$sig2
+
+    if (sum(res < 0) > 0) {
+        warning("Variance is estimated with some negative values. These are substitued to 0.")
+    }
     res[res < 0] <- 0
 
     if (sum(res) == 0) {
-        warning("All estimated variances are 0.")
+        stop("All estimated variances are 0.")
     }
 
     return(res)

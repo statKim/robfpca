@@ -39,7 +39,7 @@ If delta = NULL, it is selected from K-fold cross-validation.}
 
 \item{deg}{a numeric scalar of polynomial degrees for the kernel smoother}
 
-\item{ncores}{a number of cores to implement \code{foreach()} in \code{doParallel} for CV.}
+\item{ncores}{a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.}
 
 \item{cv_delta_loss}{a loss function for K-fold cross-validation for delta in Huber function}
 
