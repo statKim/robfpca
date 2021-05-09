@@ -50,6 +50,7 @@ sigma2.rob <- function(t, y, h = NULL) {
         # mean((A0A1[1, ] - A0A1[2, ])/A0A1[3, ])
         # mean( mean(A0A1[1, ] - A0A1[2, ]) / mean(A0A1[3, ]) )
         sig2 <- median(A0A1[1, ] - A0A1[2, ]) / median(A0A1[3, ])
+        # sig2 <- (median(A0A1[1, ]) - median(A0A1[2, ])) / median(A0A1[3, ])
     } else {
         stop('unsupported data type')
     }

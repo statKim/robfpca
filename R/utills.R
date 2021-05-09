@@ -137,3 +137,68 @@ list2rbind <- function(x) {
 
 
 
+#' Convert a matrix to a list
+#'
+#' @param X a n x p matrix containing functional trajectories.
+#' n is the number of curves, and p is the number of timepoints.
+#' @param grid a vector containing observed timepoints.
+#' Default is setting to equal grids between 0 and 1.
+#'
+#' @return a list containing 2 list (Lt, Ly).
+#'
+#' @export
+matrix2list <- function(X, grid = NULL) {
+    n <- nrow(X)
+
+    if (is.null(grid)) {
+        grid <- seq(0, 1, length.out = ncol(X))
+    }
+
+    Ly <- list()
+    Lt <- list()
+
+    for (i in 1:n) {
+        t <- grid
+        y <- X[i, ]
+
+        NA_ind <- which(is.na(y))
+        if (length(NA_ind) > 0) {
+            t <- t[-NA_ind]
+            y <- y[-NA_ind]
+        }
+        Ly[[i]] <- as.numeric(y)
+        Lt[[i]] <- t
+    }
+
+    x.2 <- list(Ly = Ly,
+                Lt = Lt)
+
+    return(x.2)
+}
+
+
+#' Convert a list to a matrix
+#'
+#' @param X a list containing 2 list (Lt, Ly).
+#'
+#' @return a n x p matrix containing functional trajectories.
+#' n is the number of curves, and p is the number of timepoints.
+#'
+#' @export
+list2matrix <- function(X) {
+    Lt <- X$Lt
+    Ly <- X$Ly
+    id <- sapply(1:length(Lt), function(i){ rep(i, length(Lt[[i]]))  })
+
+    # spread data
+    x <- data.frame(id = unlist(id),
+                    y = unlist(Ly),
+                    t = unlist(Lt)) %>%
+        spread(key = "t", value = "y")
+    x <- x[, -1] %>%
+        as.matrix
+
+    return(x)
+}
+
+
