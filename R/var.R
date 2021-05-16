@@ -113,6 +113,17 @@ predict.varfunc.rob <- function(object, newt, ...) {
     }
     res[res < 0] <- 0
 
+    # ------------------------- test version ---------------------------
+    # if estimated var is 0, it substitute to last value (test version)
+    d <- ifelse(res == 0, 0, 1)
+
+    ind_1 <- which(diff(d) == 1) + 1
+    ind_2 <- which(diff(d) == -1)
+
+    res[which(1:length(newt) < ind_1)] <- res[ind_1]
+    res[which(1:length(newt) > ind_2)] <- res[ind_2]
+    # ------------------------------------------------------------------
+
     if (sum(res) == 0) {
         stop("All estimated variances are 0.")
     }
