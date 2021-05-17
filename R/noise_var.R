@@ -47,10 +47,36 @@ sigma2.rob <- function(t, y, h = NULL) {
                      B/(m*(m-1))))
         })
 
+        # ------------------------- test version ---------------------------
+        # mcfda
         # mean((A0A1[1, ] - A0A1[2, ])/A0A1[3, ])
         # mean( mean(A0A1[1, ] - A0A1[2, ]) / mean(A0A1[3, ]) )
-        sig2 <- median(A0A1[1, ] - A0A1[2, ]) / median(A0A1[3, ])
+
+        # wrong version of median
+        # sig2 <- median(A0A1[1, ] - A0A1[2, ]) / median(A0A1[3, ])
+
+        # median version
         # sig2 <- (median(A0A1[1, ]) - median(A0A1[2, ])) / median(A0A1[3, ])
+
+        # 25%-trimmed mean (too large estimate)
+        # sig2 <- (mean(A0A1[1, ], trim = 0.25) - mean(A0A1[2, ], trim = 0.25)) / mean(A0A1[3, ], trim = 0.25)
+
+        # wrong 25%-trimmed mean
+        # sig2 <- mean(A0A1[1, ] - A0A1[2, ], trim = 0.25) / mean(A0A1[3, ], trim = 0.25)
+
+        # 25% trimmed estimator (interquartile mean; Q1 ~ Q3)
+        # cutoff_trimmed <- quantile(A0A1[1, ], c(0.25, 0.75))
+        # ind_trimmed <- which(A0A1[1, ] > cutoff_trimmed[1] & A0A1[1, ] < cutoff_trimmed[2])
+        # # sig2 <- (mean(A0A1[1, ind_trimmed]) - mean(A0A1[2, ind_trimmed])) / mean(A0A1[3, ind_trimmed])
+        # mean(A0A1[1, ind_trimmed] - A0A1[2, ind_trimmed]) / mean(A0A1[3, ind_trimmed])
+
+        # trimmed mean where A_1 <= 0.75 quantile
+        cutoff_trimmed <- quantile(A0A1[1, ], 0.75)
+        ind_trimmed <- which(A0A1[1, ] < cutoff_trimmed)
+        # sig2 <- (mean(A0A1[1, ind_trimmed]) - mean(A0A1[2, ind_trimmed])) / mean(A0A1[3, ind_trimmed])
+        sig2 <- mean(A0A1[1, ind_trimmed] - A0A1[2, ind_trimmed]) / mean(A0A1[3, ind_trimmed])
+        # ------------------------------------------------------------------
+
     } else {
         stop('unsupported data type')
     }

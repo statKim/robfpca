@@ -92,7 +92,7 @@ covfunc.rob.huber <- function(Lt,
     })
     mu.hat <- unlist(mu.hat)
 
-    cat("Finish mean estimation! \n")
+    # cat("Finish mean estimation! \n")
 
     # if (is.null(sig2e)) {
     #   sig2e <- sigma2.rob(Lt, Ly)
@@ -118,7 +118,7 @@ covfunc.rob.huber <- function(Lt,
     })
     var.hat <- unlist(var.hat)
 
-    cat("Finish variance estimation! \n")
+    # cat("Finish variance estimation! \n")
 
     if (is.null(domain)) {
         t.vec <- unlist(Lt)
@@ -152,7 +152,7 @@ covfunc.rob.huber <- function(Lt,
     if (!is.null(newt)) {
         rslt$fitted <- predict(rslt, newt)
     }
-    cat("Finish covariance estimation! \n")
+    # cat("Finish covariance estimation! \n")
 
     return(rslt)
 }
