@@ -286,7 +286,8 @@ pred_missing_curve <- function(x, pred, grid = NULL, align = FALSE, conti = TRUE
 # - y: matrix => fully observed curves
 # - y: vector => snippets or partially observed curve
 get_CE_score <- function(t, y, mu, cov, sig2, eig.obj, K, work.grid) {
-    phi <- eig.obj$phi[, 1:K]
+    phi <- matrix(eig.obj$phi[, 1:K],
+                  ncol = K)
     lambda <- eig.obj$lambda[1:K]
     Sigma_y <- cov + diag(sig2, nrow = nrow(cov))
     # Sigma_Y <- fpca.yao$smoothedCov
