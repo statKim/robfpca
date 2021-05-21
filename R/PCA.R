@@ -320,7 +320,7 @@ get_CE_score <- function(t, y, mu, cov, sig2, eig.obj, K, work.grid) {
         y_mu <- y - matrix(rep(mu, n),
                            nrow = n,
                            byrow = TRUE)
-        lamda_phi <- diag(lambda) %*% t(phi)
+        lamda_phi <- diag(lambda, ncol = K) %*% t(phi)
         Sigma_y_mu <- solve(Sigma_y, t(y_mu))
         xi <- lamda_phi %*% Sigma_y_mu
 
@@ -347,7 +347,7 @@ get_CE_score <- function(t, y, mu, cov, sig2, eig.obj, K, work.grid) {
     }
 
     # obtain PC score via conditional expectation
-    lamda_phi <- diag(lambda) %*% t(phi_y_i)
+    lamda_phi <- diag(lambda, ncol = K) %*% t(phi_y_i)
     Sigma_y_i_mu <- solve(Sigma_y_i, y - mu_y_i)
     xi <- lamda_phi %*% Sigma_y_i_mu
 
