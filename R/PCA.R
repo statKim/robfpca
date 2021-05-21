@@ -75,7 +75,8 @@ funPCA <- function(Lt,
 
     res <- list(
         lambda = eig.obj$lambda[1:K],
-        eig.fun = eig.obj$phi[, 1:K],
+        eig.fun = matrix(eig.obj$phi[, 1:K],
+                         ncol = K),
         pc.score = PC_score,
         # pc.score = t(PC_score),
         K = K,
@@ -114,7 +115,8 @@ predict.funPCA <- function(object, newdata = NULL, K = NULL, ...) {
     }
 
     if (is.null(newdata)) {
-        pc.score <- funPCA.obj$pc.score[, 1:K]
+        pc.score <- matrix(funPCA.obj$pc.score[, 1:K],
+                           ncol = K)
         n <- nrow(pc.score)
     } else {
         Lt <- newdata$Lt
@@ -136,7 +138,8 @@ predict.funPCA <- function(object, newdata = NULL, K = NULL, ...) {
 
     mu <- matrix(rep(funPCA.obj$mu, n),
                  nrow = n, byrow = TRUE)
-    eig.fun <- funPCA.obj$eig.fun[, 1:K]
+    eig.fun <- matrix(funPCA.obj$eig.fun[, 1:K],
+                      ncol = K)
     pred <- mu + pc.score %*% t(eig.fun)   # reconstructed curves
 
     return(pred)
