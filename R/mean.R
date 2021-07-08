@@ -213,7 +213,7 @@ predict.meanfunc.rob <- function(object, newt, ...) {
         df_newt_unique <- data.frame(t = newt_unique,
                                      pred = pred_unique)
         pred_newt <- df_newt %>%
-            left_join(df_newt_unique, by = "t") %>%
+            dplyr::left_join(df_newt_unique, by = "t") %>%
             dplyr::select(pred) %>%
             unlist()
 

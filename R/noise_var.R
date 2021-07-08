@@ -8,7 +8,7 @@
 #' @param y a list of vectors containing observations for each curve
 #' @param h a bandwidth
 #'
-#' @importFrom stats median
+#' @importFrom stats median quantile
 #'
 #' @export
 #' @useDynLib robfpca
@@ -18,8 +18,8 @@ sigma2.rob <- function(t, y, h = NULL) {
 
         t.min <- min(unlist(t))
         t.max <- max(unlist(t))
-        if (is.null(h)) {   # Not recommended
-            h <- select.sig2.bw(t,y)
+        if (is.null(h)) {
+            h <- select.sig2.rob.bw(t, y)
         } else if (2*h >= t.max-t.min) {
             stop('h is too large')
         }
@@ -86,7 +86,7 @@ sigma2.rob <- function(t, y, h = NULL) {
 
 
 ### select optimal bandwidth
-select.sig2.rob.bw <- function(Lt, Ly, ss = NULL) {
+select.sig2.rob.bw <- function(Lt, Ly, ss = NULL, mu = NULL) {
     n <- length(Lt)
 
     t.min <- min(unlist(Lt))
@@ -99,11 +99,27 @@ select.sig2.rob.bw <- function(Lt, Ly, ss = NULL) {
 
     # calculate sum of squares - Not recommended (Already it was calculated once!)
     if (is.null(ss)) {
-        # mu.hat <- predict(meanfunc(Lt,Ly),Ly)
-        mu.hat <- predict(meanfunc.rob(Lt, Ly), Lt)
-        ss <- lapply(1:length(Lt),function(i){
-            rr <- Ly[[i]] - mu.hat[[i]]
-            rr^2
+        # # mu.hat <- predict(meanfunc(Lt,Ly),Ly)
+        # mu.hat <- predict(meanfunc.rob(Lt, Ly), Lt)
+        # ss <- lapply(1:length(Lt),function(i){
+        #   rr <- Ly[[i]] - mu.hat[[i]]
+        #   rr^2
+        # })
+
+        gr <- sort(unique(unlist(Lt)))
+        if (is.null(mu)) {
+            mu <- meanfunc.rob(Lt, Ly, method = "huber", kernel = "epanechnikov",
+                               bw = (t.max-t.min)/5, delta = 1.345)
+        }
+        mu_hat <- predict(mu, gr)
+        ss <- lapply(1:n, function(i) {
+            ind <- match(Lt[[i]], gr)
+            if (length(ind) == length(Lt[[i]])) {
+                return( (Ly[[i]] - mu_hat[ind])^2 )
+            } else {
+                mui <- predict(mu, Lt[[i]])
+                return( (Ly[[i]] - mui)^2 )
+            }
         })
     }
 

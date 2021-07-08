@@ -194,7 +194,7 @@ list2matrix <- function(X) {
     x <- data.frame(id = unlist(id),
                     y = unlist(Ly),
                     t = unlist(Lt)) %>%
-        spread(key = "t", value = "y")
+        tidyr::spread(key = "t", value = "y")
     x <- x[, -1] %>%
         as.matrix
 

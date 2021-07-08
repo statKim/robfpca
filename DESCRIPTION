@@ -19,6 +19,7 @@ Imports:
     Rcpp,
     RcppEigen,
     dplyr,
+    tidyr,
     doParallel,
     fdapace,
     foreach,
