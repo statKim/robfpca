@@ -24,6 +24,7 @@ Imports:
     fdapace,
     foreach,
     robfilter,
-    pracma
+    pracma,
+    graphics
 Suggests: 
     MASS

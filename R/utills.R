@@ -188,7 +188,7 @@ matrix2list <- function(X, grid = NULL) {
 list2matrix <- function(X) {
     Lt <- X$Lt
     Ly <- X$Ly
-    id <- sapply(1:length(Lt), function(i){ rep(i, length(Lt[[i]]))  })
+    id <- lapply(1:length(Lt), function(i){ rep(i, length(Lt[[i]]))  })
 
     # spread data
     x <- data.frame(id = unlist(id),
@@ -202,3 +202,36 @@ list2matrix <- function(X) {
 }
 
 
+#' Plot functional trajectories
+#'
+#' @param x a list containing 2 list (Lt, Ly) or n x p matrix.
+#' @param Lt a list containing obeserved time grids of each trajectory. (If x is NULL)
+#' @param Ly a list containing obeserved values of each trajectory. (If x is NULL)
+#' @param ... Options of \code{plot()}.
+#'
+#' @export
+plot_curve <- function(x = NULL, Lt = NULL, Ly = NULL, ...) {
+    if (is.null(x)) {
+        if (!(is.list(Lt) & is.list(Ly))) {
+            stop("Lt and Ly should be only list.")
+        }
+
+        Lt_len <- sapply(Lt, length)
+        Ly_len <- sapply(Ly, length)
+
+        if (!all.equal(Lt_len, Ly_len)) {
+            stop("Length of each trajectory of Lt and Ly are not same.")
+        }
+
+        x <- list(Lt = Lt,
+                  Ly = Ly)
+        x <- list2matrix(x)
+    }
+
+    if (is.list(x)) {
+        gr <- sort(unique(unlist(Lt)))
+        graphics::matplot(gr, t(x), ...)
+    } else if (is.matrix(x)) {
+        graphics::matplot(t(x), ...)
+    }
+}
