@@ -37,3 +37,15 @@ wrm_smooth_cpp <- function(x, y, h, xgrid, kernel) {
     .Call('_robfpca_wrm_smooth_cpp', PACKAGE = 'robfpca', x, y, h, xgrid, kernel)
 }
 
+huber_cpp <- function(y, k = 1.5, tol = 1e-6) {
+    .Call('_robfpca_huber_cpp', PACKAGE = 'robfpca', y, k, tol)
+}
+
+mean_Mest <- function(X) {
+    .Call('_robfpca_mean_Mest', PACKAGE = 'robfpca', X)
+}
+
+cov_Mest <- function(X) {
+    .Call('_robfpca_cov_Mest', PACKAGE = 'robfpca', X)
+}
+

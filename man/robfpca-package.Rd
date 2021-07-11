@@ -4,7 +4,7 @@
 \name{robfpca-package}
 \alias{robfpca}
 \alias{robfpca-package}
-\title{robfpca: Robust principal component analysis for functional snippets}
+\title{robfpca: Robust principal component analysis for partially observed functional data}
 \description{
 More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.

@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // get_positive_elements
 Rcpp::List get_positive_elements(Eigen::VectorXd Y, Eigen::MatrixXd X, Eigen::VectorXd W);
 RcppExport SEXP _robfpca_get_positive_elements(SEXP YSEXP, SEXP XSEXP, SEXP WSEXP) {
@@ -132,6 +137,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// huber_cpp
+double huber_cpp(NumericVector y, double k, double tol);
+RcppExport SEXP _robfpca_huber_cpp(SEXP ySEXP, SEXP kSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< double >::type k(kSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(huber_cpp(y, k, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mean_Mest
+NumericVector mean_Mest(NumericMatrix X);
+RcppExport SEXP _robfpca_mean_Mest(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(mean_Mest(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cov_Mest
+NumericMatrix cov_Mest(NumericMatrix X);
+RcppExport SEXP _robfpca_cov_Mest(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(cov_Mest(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_get_positive_elements", (DL_FUNC) &_robfpca_get_positive_elements, 3},
@@ -143,6 +183,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_wrm_fit", (DL_FUNC) &_robfpca_wrm_fit, 4},
     {"_robfpca_get_kernel", (DL_FUNC) &_robfpca_get_kernel, 4},
     {"_robfpca_wrm_smooth_cpp", (DL_FUNC) &_robfpca_wrm_smooth_cpp, 5},
+    {"_robfpca_huber_cpp", (DL_FUNC) &_robfpca_huber_cpp, 3},
+    {"_robfpca_mean_Mest", (DL_FUNC) &_robfpca_mean_Mest, 1},
+    {"_robfpca_cov_Mest", (DL_FUNC) &_robfpca_cov_Mest, 1},
     {NULL, NULL, 0}
 };
 

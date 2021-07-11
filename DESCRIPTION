@@ -1,6 +1,6 @@
 Package: robfpca
 Type: Package
-Title: Robust principal component analysis for functional snippets
+Title: Robust principal component analysis for partially observed functional data
 Version: 0.1.0
 Date: 2021-04-17
 Authors@R: c(person("Hyunsung", "Kim", role = c("aut","cre"), 
@@ -25,6 +25,7 @@ Imports:
     foreach,
     robfilter,
     pracma,
-    graphics
+    graphics,
+    fields
 Suggests: 
     MASS
