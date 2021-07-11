@@ -18,7 +18,7 @@ mean_Mest <- function(x) {
     if (is.list(x)) {
         x <- list2matrix(x)
     }
-    mu <- mean_Mest(x)
+    mu <- mean_Mest_cpp(x)
 
     return(mu)
 }
@@ -53,7 +53,7 @@ cov_Mest <- function(x,
     p <- ncol(x)
 
     # obtain the covariance based on marignal M-estimator via C++ code
-    rob.var = cov_Mest(x)
+    rob.var = cov_Mest_cpp(x)
 
     # subtract noise variance
     diag(rob.var) <- diag(rob.var) - noise.var

@@ -41,11 +41,11 @@ huber_cpp <- function(y, k = 1.5, tol = 1e-6) {
     .Call('_robfpca_huber_cpp', PACKAGE = 'robfpca', y, k, tol)
 }
 
-mean_Mest <- function(X) {
-    .Call('_robfpca_mean_Mest', PACKAGE = 'robfpca', X)
+mean_Mest_cpp <- function(X) {
+    .Call('_robfpca_mean_Mest_cpp', PACKAGE = 'robfpca', X)
 }
 
-cov_Mest <- function(X) {
-    .Call('_robfpca_cov_Mest', PACKAGE = 'robfpca', X)
+cov_Mest_cpp <- function(X) {
+    .Call('_robfpca_cov_Mest_cpp', PACKAGE = 'robfpca', X)
 }
 

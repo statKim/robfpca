@@ -150,25 +150,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// mean_Mest
-NumericVector mean_Mest(NumericMatrix X);
-RcppExport SEXP _robfpca_mean_Mest(SEXP XSEXP) {
+// mean_Mest_cpp
+NumericVector mean_Mest_cpp(NumericMatrix X);
+RcppExport SEXP _robfpca_mean_Mest_cpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(mean_Mest(X));
+    rcpp_result_gen = Rcpp::wrap(mean_Mest_cpp(X));
     return rcpp_result_gen;
 END_RCPP
 }
-// cov_Mest
-NumericMatrix cov_Mest(NumericMatrix X);
-RcppExport SEXP _robfpca_cov_Mest(SEXP XSEXP) {
+// cov_Mest_cpp
+NumericMatrix cov_Mest_cpp(NumericMatrix X);
+RcppExport SEXP _robfpca_cov_Mest_cpp(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(cov_Mest(X));
+    rcpp_result_gen = Rcpp::wrap(cov_Mest_cpp(X));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -184,8 +184,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_get_kernel", (DL_FUNC) &_robfpca_get_kernel, 4},
     {"_robfpca_wrm_smooth_cpp", (DL_FUNC) &_robfpca_wrm_smooth_cpp, 5},
     {"_robfpca_huber_cpp", (DL_FUNC) &_robfpca_huber_cpp, 3},
-    {"_robfpca_mean_Mest", (DL_FUNC) &_robfpca_mean_Mest, 1},
-    {"_robfpca_cov_Mest", (DL_FUNC) &_robfpca_cov_Mest, 1},
+    {"_robfpca_mean_Mest_cpp", (DL_FUNC) &_robfpca_mean_Mest_cpp, 1},
+    {"_robfpca_cov_Mest_cpp", (DL_FUNC) &_robfpca_cov_Mest_cpp, 1},
     {NULL, NULL, 0}
 };
 
