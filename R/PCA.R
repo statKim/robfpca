@@ -28,7 +28,7 @@ funPCA <- function(Lt,
     eig.obj <- get_eigen(cov, work.grid)
 
     # fitted covariance which is transformed to positive semi-definite
-    cov <- eig.obj$cov_svd
+    cov <- eig.obj$cov_psd
 
     # noise variance
     if (is.null(sig2)) {
