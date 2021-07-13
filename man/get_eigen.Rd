@@ -16,6 +16,7 @@ a list contatining follows:
 \item{lambda}{a vector of positive eigenvalues}
 \item{phi}{a matrix containing columnwise eigenvectors}
 \item{PVE}{a vector containing proportion of variance explained}
+\item{cov_psd}{a matrix containing covariance matrix transformed via positive semi-definite}
 }
 \description{
 Get eigenanalysis results including eigenvalues, corresponding eigenvectors, and a proportion of variance explained (PVE)

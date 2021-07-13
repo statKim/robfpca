@@ -70,7 +70,11 @@ cov_Mest <- function(x,
     if (isTRUE(make.pos.semidef)) {
         eig <- eigen(rob.var)
         k <- which(eig$values > 0)
-        rob.var <- eig$vectors[, k] %*% diag(eig$values[k]) %*% t(eig$vectors[, k])
+        if (length(k) > 1) {
+            rob.var <- eig$vectors[, k] %*% diag(eig$values[k]) %*% t(eig$vectors[, k])
+        } else {
+            rob.var <- eig$values[k] * (eig$vectors[, k] %*% t(eig$vectors[, k]))
+        }
     }
 
     return(rob.var)

@@ -1,5 +1,7 @@
 
-#' PCA for functional snippets via conditional expectation
+#' Functional Principal Component Analysis (FPCA) via Conditional Expectation
+#'
+#' FPCA is performed via PACE (Principal Analysis via Conditional Expectation) proposed by Yao et al. (2005).
 #'
 #' @param Lt  a list of vectors or a vector containing time points for all curves
 #' @param Ly  a list of vectors or a vector containing observations for all curves
@@ -24,6 +26,9 @@ funPCA <- function(Lt,
 
     # eigen analysis
     eig.obj <- get_eigen(cov, work.grid)
+
+    # fitted covariance which is transformed to positive semi-definite
+    cov <- eig.obj$cov_svd
 
     # noise variance
     if (is.null(sig2)) {

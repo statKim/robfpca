@@ -320,13 +320,13 @@ estimate.theta <- function(Lt,Ly,
             v <- sapply(1:D,function(d){
                 lb <- theta.lb[d]
                 ub <- theta.ub[d]
-                if(lb > -Inf && ub < Inf) return(runif(1)*(ub-lb)+lb)
-                else if(lb > -Inf) return(runif(1)+lb)
-                else if(ub < Inf) return(ub-runif(1))
-                else return(runif(1))
+                if(lb > -Inf && ub < Inf) return(stats::runif(1)*(ub-lb)+lb)
+                else if(lb > -Inf) return(stats::runif(1)+lb)
+                else if(ub < Inf) return(ub-stats::runif(1))
+                else return(stats::runif(1))
             })
         else v <- theta0
-        res <- optim(v,Q,lower=theta.lb,upper=theta.ub,method='L-BFGS-B')
+        res <- stats::optim(v,Q,lower=theta.lb,upper=theta.ub,method='L-BFGS-B')
         result$LS <- res$par
         result$Q <- Q(res$par)
     }
@@ -374,11 +374,11 @@ estimate.theta <- function(Lt,Ly,
                     theta
                     tobs
                 }
-                if(cond(rho.mat) > 1e2)
+                if(pracma::cond(rho.mat) > 1e2)
                 {
-                    rho.inv <- inv(rho.mat+0.01*diag(rep(1,m)))
+                    rho.inv <- pracma::inv(rho.mat+0.01*diag(rep(1,m)))
                 }
-                else rho.inv <- inv(rho.mat)
+                else rho.inv <- pracma::inv(rho.mat)
                 S <- SS[[i]]
                 resid <- (t(R[[i]]) %*% S %*% rho.inv %*% S %*% R[[i]])
                 resid <- resid + log(abs(det(rho.mat)))
@@ -396,12 +396,12 @@ estimate.theta <- function(Lt,Ly,
         v <- sapply(1:D,function(d){
             lb <- theta.lb[d]
             ub <- theta.ub[d]
-            if(lb > -Inf && ub < Inf) return(runif(1)*(ub-lb)+lb)
-            else if(lb > -Inf) return(runif(1)+lb)
-            else if(ub < Inf) return(ub-runif(1))
-            else return(runif(1))
+            if(lb > -Inf && ub < Inf) return(stats::runif(1)*(ub-lb)+lb)
+            else if(lb > -Inf) return(stats::runif(1)+lb)
+            else if(ub < Inf) return(ub-stats::runif(1))
+            else return(stats::runif(1))
         })
-        res <- optim(v,Q,lower=theta.lb,upper=theta.ub,method='L-BFGS-B')
+        res <- stats::optim(v,Q,lower=theta.lb,upper=theta.ub,method='L-BFGS-B')
         result$QMLE <- res$par
     }
 

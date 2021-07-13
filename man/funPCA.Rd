@@ -2,7 +2,7 @@
 % Please edit documentation in R/PCA.R
 \name{funPCA}
 \alias{funPCA}
-\title{PCA for functional snippets via conditional expectation}
+\title{Functional Principal Component Analysis (FPCA) via Conditional Expectation}
 \usage{
 funPCA(Lt, Ly, mu, cov, sig2 = NULL, work.grid, K = NULL, PVE = 0.99)
 }
@@ -24,5 +24,5 @@ funPCA(Lt, Ly, mu, cov, sig2 = NULL, work.grid, K = NULL, PVE = 0.99)
 \item{PVE}{a proportion of variance explained}
 }
 \description{
-PCA for functional snippets via conditional expectation
+FPCA is performed via PACE (Principal Analysis via Conditional Expectation) proposed by Yao et al. (2005).
 }
