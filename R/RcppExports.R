@@ -9,6 +9,10 @@ IRLScpp <- function(Y, X, weight_ = NULL, maxit = 30L, tol = 0.0001, k = 1.345) 
     .Call('_robfpca_IRLScpp', PACKAGE = 'robfpca', Y, X, weight_, maxit, tol, k)
 }
 
+get_kernel_weight <- function(tmp, kernel = "epanechnikov") {
+    .Call('_robfpca_get_kernel_weight', PACKAGE = 'robfpca', tmp, kernel)
+}
+
 locpolysmooth <- function(Lt, Ly, newt, kernel = "epanechnikov", bw = 0.1, k = 1.345, deg = 1L) {
     .Call('_robfpca_locpolysmooth', PACKAGE = 'robfpca', Lt, Ly, newt, kernel, bw, k, deg)
 }

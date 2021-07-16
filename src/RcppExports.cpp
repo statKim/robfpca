@@ -40,6 +40,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_kernel_weight
+Eigen::VectorXd get_kernel_weight(Eigen::VectorXd tmp, std::string kernel);
+RcppExport SEXP _robfpca_get_kernel_weight(SEXP tmpSEXP, SEXP kernelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::VectorXd >::type tmp(tmpSEXP);
+    Rcpp::traits::input_parameter< std::string >::type kernel(kernelSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_kernel_weight(tmp, kernel));
+    return rcpp_result_gen;
+END_RCPP
+}
 // locpolysmooth
 Eigen::VectorXd locpolysmooth(Eigen::VectorXd Lt, Eigen::VectorXd Ly, Eigen::VectorXd newt, std::string kernel, const double bw, const double k, const int deg);
 RcppExport SEXP _robfpca_locpolysmooth(SEXP LtSEXP, SEXP LySEXP, SEXP newtSEXP, SEXP kernelSEXP, SEXP bwSEXP, SEXP kSEXP, SEXP degSEXP) {
@@ -176,6 +188,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_get_positive_elements", (DL_FUNC) &_robfpca_get_positive_elements, 3},
     {"_robfpca_IRLScpp", (DL_FUNC) &_robfpca_IRLScpp, 6},
+    {"_robfpca_get_kernel_weight", (DL_FUNC) &_robfpca_get_kernel_weight, 2},
     {"_robfpca_locpolysmooth", (DL_FUNC) &_robfpca_locpolysmooth, 7},
     {"_robfpca_order_", (DL_FUNC) &_robfpca_order_, 1},
     {"_robfpca_weighted_quantile_cpp", (DL_FUNC) &_robfpca_weighted_quantile_cpp, 3},

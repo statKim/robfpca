@@ -5,6 +5,8 @@
 #include <vector>
 #include <algorithm>
 
+// [[Rcpp::depends(RcppEigen)]]
+
 typedef Eigen::Map<Eigen::MatrixXd> MapMatd;
 typedef Eigen::Map<Eigen::VectorXd> MapVecd;
 
@@ -15,8 +17,10 @@ using Eigen::Map;                       // 'maps' rather than copies
 using Eigen::MatrixXd;                  // variable size matrix, double precision
 using Eigen::VectorXd;                  // variable size vector, double precision
 
+using std::exp;
+using std::isnan;
 
-// [[Rcpp::depends(RcppEigen)]]
+
 // Get data with positive kernel weights for local regression
 // - Y : observed data (unlist(Ly))
 // - X : observed grid (unlist(Lt))
@@ -82,7 +86,7 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
   int n = Y.size();   // number of observations (unlist(Lt))
 
   // initial value for beta (LSE estimator)
-  Eigen::MatrixXd beta(maxit, X.cols());   // container of beta for iterations
+  Eigen::MatrixXd beta(maxit+1, X.cols());   // container of beta for iterations
   beta.setZero();   // initialize to 0
   Eigen::LDLT<Eigen::MatrixXd> ldlt_XTX(X.transpose() * X);
   beta.row(0) = ldlt_XTX.solve(X.transpose() * Y);   // LSE estimator
@@ -151,11 +155,33 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
       iter = i+1;
       break;
     }
+
+    // If fail to convege, return warning message.
+    if (iter == maxit) {
+      Rcpp::warning("IRLS algorithm is failed to converge for maxit = %i iterations.", maxit);
+      // Rcpp::Rcout << "Converge fail in the IRLS algorithm for maxit=" << maxit;
+    }
   }
 
   return Rcpp::List::create(Rcpp::_["beta"] = beta_hat,
                             Rcpp::_["iter"] = iter,
                             Rcpp::_["scale.est"] = s);
+}
+
+
+// Get kernel weights for local smoothing
+// [[Rcpp::export]]
+Eigen::VectorXd get_kernel_weight(Eigen::VectorXd tmp,
+                                  std::string kernel = "epanechnikov") {
+  int n = tmp.size();
+  Eigen::VectorXd kern(n);
+  if (kernel == "epanechnikov") {   // Epanechnikov kernel
+    kern = (3./4.) * (1 - tmp.array().pow(2));
+  } else if (kernel == "gauss") {   // Gaussian kernel
+    kern = (1./sqrt(2.*M_PI)) * (-0.5 * tmp.array().pow(2)).exp();
+  }
+
+  return kern;
 }
 
 
@@ -178,53 +204,47 @@ Eigen::VectorXd locpolysmooth(Eigen::VectorXd Lt,
                               const int deg = 1) {
   int n_newt = newt.size();   // number of grid which is predicted
   int n = Lt.size();   // number of Lt
-
   double weig = 1. / n;   // 1/length(Lt)
 
-  Eigen::VectorXd tmp(n);
-  Eigen::VectorXd kern(n);
-  Rcpp::NumericVector W(n);
-  // Eigen::VectorXd W(n);
-  Eigen::MatrixXd X(n, deg+1);
-  Eigen::VectorXd Y(n);
-  Rcpp::List fit;
+
   Eigen::VectorXd beta_hat(deg+1);
   Eigen::VectorXd mu_hat(n_newt);
-  Rcpp::List pos_idx_obj;
-  int n_pos = 0;
-
   for (int t = 0; t < n_newt; t++) {
+    Eigen::VectorXd tmp(n);
     tmp = (Lt.array() - newt(t)) / bw;
 
-    if (kernel == "epanechnikov") {
-      kern = (3./4.) * (1 - tmp.array().pow(2));   // Epanechnikov kernel
-    } else if (kernel == "gauss") {
-      kern = 1./sqrt(2.*M_PI) * (-1./2. * tmp.array().pow(2)).exp();   // gaussian kernel
-    }
+    // Kernel weights
+    Eigen::VectorXd kern(n);
+    kern = get_kernel_weight(tmp, kernel);
+    // if (kernel == "epanechnikov") {   // Epanechnikov kernel
+    //   kern = (3./4.) * (1 - tmp.array().pow(2));
+    // } else if (kernel == "gauss") {   // Gaussian kernel
+    //   kern = (1./sqrt(2.*M_PI)) * (-0.5 * tmp.array().pow(2)).exp();
+    // }
 
     // X matrix
-    X.resize(n, deg+1);
+    Eigen::MatrixXd X(n, deg+1);
     X.setOnes();
     for (int d = 0; d < deg; d++) {
       X.col(d+1) = (Lt.array() - newt(t)).pow(d+1);
     }
 
     // obtain data which has non-negative weights
-    pos_idx_obj = get_positive_elements(Ly, X, kern);
-    n_pos = pos_idx_obj["n_pos"];
-    X.resize(n_pos, deg+1);
-    Y.resize(n_pos);
-    kern.resize(n_pos);
-    X = pos_idx_obj["X"];
-    Y = pos_idx_obj["Y"];
-    kern = pos_idx_obj["W"];
+    Rcpp::List pos_idx_obj = get_positive_elements(Ly, X, kern);
+    int n_pos = pos_idx_obj["n_pos"];
+    Eigen::MatrixXd X_sub = pos_idx_obj["X"];
+    Eigen::VectorXd Y_sub = pos_idx_obj["Y"];
+    Eigen::VectorXd kern_sub = pos_idx_obj["W"];
 
     // weight vector for w_i * K_h(x)
-    W = (weig * kern.array()) / bw;
+    Rcpp::NumericVector W(n_pos);
+    W = (weig * kern_sub.array()) / bw;
+
+    // Rcpp::Rcout << W << "\n";
+    // Rcpp::Rcout << n << "\t" << W.size() << "\t" << kern.size() << "\n";
 
     // Huber regression
-    fit = IRLScpp(Y, X, W, 30, 0.0001, k);
-
+    Rcpp::List fit = IRLScpp(Y_sub, X_sub, W, 30, 0.0001, k);
     beta_hat = fit["beta"];
     mu_hat(t) = beta_hat(0);
   }
@@ -233,3 +253,96 @@ Eigen::VectorXd locpolysmooth(Eigen::VectorXd Lt,
 }
 
 
+
+//
+// /*** R
+// library(mvtnorm)
+// library(robfpca)
+// source("R/sim_delaigle.R")
+// # source("R/sim_Lin_Wang(2020).R")
+// # source("load_source.R")
+//
+// num_sim <- 30   # number of simulations
+// out_prop <- 0   # proportion of outliers
+// data_type <- "snippet"   # type of functional data
+// # kernel <- "epanechnikov"   # kernel function for local smoothing
+// kernel <- "gauss"   # kernel function for local smoothing
+// bw <- 0.1   # fixed bandwidth
+// n_cores <- 12   # number of threads for parallel computing
+//
+// set.seed(1)
+// n <- 100
+// n.grid <- 51
+// # x.2 <- sim_kraus(n = n, out.prop = 0.2, out.type = 1, grid.length = n.grid)
+// x.2 <- sim_delaigle(n = n,
+//                     model = 2,
+//                     type = data_type,
+//                     out.prop = out_prop,
+//                     out.type = 1)
+// df <- data.frame(
+//   id = factor(unlist(sapply(1:length(x.2$Lt),
+//                             function(id) {
+//                               rep(id, length(x.2$Lt[[id]]))
+//                             })
+//   )),
+//   y = unlist(x.2$Ly),
+//   t = unlist(x.2$Lt)
+// )
+//
+// work.grid <- seq(0, 1, length.out = n.grid)
+//
+//
+//
+// Lt <- x.2$Lt
+// Ly <- x.2$Ly
+// method <- "HUBER"
+// deg <- 1
+// K <- 5
+// bw_cand = 10^seq(-1, 0, length.out = 5)/3
+// cv_loss<-"HUBER"
+// delta <- 1.345
+//
+//
+// # get index for each folds
+// folds <- list()
+// n <- length(Lt)   # the number of curves
+// fold_num <- n %/% K   # the number of curves for each folds
+// fold_sort <- sample(1:n, n)
+// for (k in 1:K) {
+//   ind <- (fold_num*(k-1)+1):(fold_num*k)
+//   if (k == K) {
+//     ind <- (fold_num*(k-1)+1):n
+//   }
+//   folds[[k]] <- fold_sort[ind]
+// }
+// k <- 1
+//
+//
+// for (k in 1:K) {
+//   print(k)
+//   Lt_train <- Lt[ -folds[[k]] ]
+//   Ly_train <- Ly[ -folds[[k]] ]
+//   Lt_test <- Lt[ folds[[k]] ]
+//   Ly_test <- Ly[ folds[[k]] ]
+//
+//   for (i in 1:length(bw_cand)) {
+//     # print(i)
+//     # y_hat <- local_kern_smooth(Lt = Lt_train,
+//     #                            Ly = Ly_train,
+//     #                            newt = Lt_test,
+//     #                            method = method,
+//     #                            bw = bw_cand[i],
+//     #                            kernel = kernel,
+//     #                            delta = 1.345)
+//
+//     mu_hat <- locpolysmooth(Lt = unlist(Lt_train),
+//                             Ly = unlist(Ly_train),
+//                             newt = work.grid,
+//                             kernel = kernel,
+//                             bw = bw_cand[i],
+//                             k = delta,
+//                             deg = deg)
+//   }
+// }
+// mu_hat
+// */
