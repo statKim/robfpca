@@ -18,6 +18,11 @@ double huber_cpp(NumericVector y,
     // MAD
     NumericVector s_ = abs(y - mu);
     double s = 1.4826 * median(s_);
+    if (s == 0) {
+        Rcpp::stop("Estimated MAD is 0 in Huber's location estimation.");
+        // Rcout << "Estimated MAD is 0." << "\n";
+        return 0;
+    }
 
     // Obtain Huber's M-estimator
     NumericVector yy;
@@ -25,11 +30,6 @@ double huber_cpp(NumericVector y,
     while(1) {   // infinite loop
         yy = pmin(pmax(mu - k * s, y), mu + k * s);
         mu1 = sum(yy) / n;
-
-        if (s == 0) {
-            Rcout << "Estimated MAD is 0." << "\n";
-            return 0;
-        }
 
         if (abs(mu - mu1) < tol*s) {
             break;
