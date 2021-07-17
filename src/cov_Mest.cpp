@@ -15,11 +15,15 @@ double huber_cpp(NumericVector y,
     int n = y.size();
     double mu = median(y);   // median
 
+    if (n == 0) {
+        Rcpp::stop("There is no available observation to compute Huber's location M-estimator.");
+    }
+
     // MAD
     NumericVector s_ = abs(y - mu);
     double s = 1.4826 * median(s_);
     if (s == 0) {
-        Rcpp::stop("Estimated MAD is 0 in Huber's location estimation.");
+        Rcpp::stop("Estimated MAD is 0 in Huber's location M-estimator.");
         // Rcout << "Estimated MAD is 0." << "\n";
         return 0;
     }
