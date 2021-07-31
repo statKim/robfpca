@@ -50,7 +50,7 @@ mean_local_M <- function(X,
 
     # transform to observed value per timepoint
     x <- as.numeric(X)
-    t <- rep(1:p, each = n)
+    t <- rep(gr, each = n)
 
     # remove NA
     ind_NA <- which(is.na(x))

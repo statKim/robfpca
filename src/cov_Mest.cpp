@@ -214,9 +214,11 @@ NumericVector local_M_1D(NumericVector x,
                          NumericVector new_t,
                          double h) {
   int p = new_t.length();
+
   NumericVector mu(p);
+  LogicalVector i_neighbor(t.length());
   for (int i = 0; i < p; i++) {
-    LogicalVector i_neighbor = abs(t - new_t[i]) < h;
+    i_neighbor = abs(t - new_t[i]) < h;
     NumericVector X_i_neighbor = x[i_neighbor];
     mu[i] = huber_cpp(X_i_neighbor);
   }
