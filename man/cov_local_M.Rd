@@ -2,13 +2,14 @@
 % Please edit documentation in R/cov_local_M.R
 \name{cov_local_M}
 \alias{cov_local_M}
-\title{Local M-estimator for Covariance function (covariance estimator)}
+\title{Bivariate Local M-estimator for Covariance function (covariance estimator)}
 \usage{
 cov_local_M(
   X,
-  h = 0.02,
+  bw = 0.02,
   gr = NULL,
   diag = FALSE,
+  ncores = 1,
   raw_cov = NULL,
   engine = "C++"
 )
@@ -16,11 +17,13 @@ cov_local_M(
 \arguments{
 \item{X}{a n x p matrix}
 
-\item{h}{a numeric value of bandwidth (Defalut is 0.02)}
+\item{bw}{a numeric value of bandwidth. If \code{bw} is \code{NULL}, then robust 5-fold cross-validation(using Huber loss) is performed to select optimal bandwidth. (Defalut is 0.02)}
 
 \item{gr}{a vector containing observed timepoints. (Default is \code{NULL}, and it is set to equal grid between 0 and 1.)}
 
 \item{diag}{logical value whether containing diagonal parts of the covariance. (Default is \code{FALSE}.)}
+
+\item{ncores}{a number of cores to select bandwidth from robust 5-fold cross-validation. (Defalut is 1.)}
 
 \item{raw_cov}{a dataframe which is the return value from \code{get_raw_cov()}. (Default is \code{NULL}, and it is calculated automatically.)}
 
@@ -30,7 +33,7 @@ cov_local_M(
 a p x p matrix containing the covariance function from local M-estimation.
 }
 \description{
-Obtain the local M-estimator for covariance function.
+Obtain the bivariate local M-estimator for covariance function.
 }
 \details{
 It provides 2 options for implementing R or C++.

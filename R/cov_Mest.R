@@ -61,7 +61,7 @@ cov_Mest <- function(x,
         if (is.null(bw)) {
             cv.obj <- cv.cov_Mest(x, ncores = 1)   # 5-fold CV is performed
             bw <- cv.obj$selected_bw
-            cat(paste("Optimal bandwidth=", bw, "is selected! \n"))
+            cat(paste("Optimal bandwidth=", round(bw, 3), "is selected! \n"))
         }
 
         # element-wise covariances
@@ -111,7 +111,21 @@ cov_Mest <- function(x,
 
 
 
-### K-fold cross-validation for Bivariate Nadaraya-Watson smoothing for Covariance
+#' K-fold Cross-Validation for Bivariate Nadaraya-Watson smoothing for Covariance
+#'
+#' Perform K-fold cross-validation for Bivariate Nadaraya-Watson smoothing for Covariance.
+#'
+#' @param x a n x p matrix
+#' @param bw_cand a numeric vector of bandwidth candidate. (Default is \code{NULL}, and it is selected automatically.)
+#' @param K a number of folds for K-fold cross-validation. (Default is 5.)
+#' @param ncores a number of cores to select bandwidth from robust 5-fold cross-validation. (Defalut is 1.)
+#' @param noise.var the numeric value containing noise variance. (Defalut is 0.)
+#'
+#' @return a list contatining as follows:
+#' \item{selected_bw}{the optimal bandwidth selected from the robust K-fold cross-validation.}
+#' \item{cv.error}{a matrix containing CV error per bandwidth candidates.}
+#'
+#' @export
 ### - Not exactly observation-wise cross-validation
 ### - It is conducted for element-wise covariance
 cv.cov_Mest <- function(x,
@@ -187,28 +201,27 @@ cv.cov_Mest <- function(x,
                                      # .export = c("local_kern_smooth"),
                                      .packages = c("robfpca"),
                                      .errorhandling = "pass") %dopar% {
+            bw <- bw_fold_mat$bw_cand[i]   # bandwidth candidate
+            k <- bw_fold_mat$fold[i]   # fold for K-fold CV
 
-                                         bw <- bw_fold_mat$bw_cand[i]   # bandwidth candidate
-                                         k <- bw_fold_mat$fold[i]   # fold for K-fold CV
+            # data of kth fold
+            st_train <- st[-folds[[k]], ]
+            st_test <- st[folds[[k]], ]
+            cov_train <- cov_st[-folds[[k]]]
+            cov_test <- cov_st[folds[[k]]]
 
-                                         # data of kth fold
-                                         st_train <- st[-folds[[k]], ]
-                                         st_test <- st[folds[[k]], ]
-                                         cov_train <- cov_st[-folds[[k]]]
-                                         cov_test <- cov_st[folds[[k]]]
+            # Bivariate Nadaraya-Watson smoothing
+            cov_hat_sm <- fields::smooth.2d(cov_train,
+                                            x = st_train,
+                                            surface = F,
+                                            theta = bw,
+                                            nrow = p,
+                                            ncol = p)
+            cov_hat_sm <- as.numeric(cov_hat_sm)[folds[[k]]]
+            err <- sum((cov_test - cov_hat_sm)^2)   # squared errors
 
-                                         # Bivariate Nadaraya-Watson smoothing
-                                         cov_hat_sm <- fields::smooth.2d(cov_train,
-                                                                         x = st_train,
-                                                                         surface = F,
-                                                                         theta = bw,
-                                                                         nrow = p,
-                                                                         ncol = p)
-                                         cov_hat_sm <- as.numeric(cov_hat_sm)[folds[[k]]]
-                                         err <- sum((cov_test - cov_hat_sm)^2)   # squared errors
-
-                                         return(err)
-                                     }
+            return(err)
+        }
         parallel::stopCluster(cl)
 
         bw_fold_mat$cv_error <- cv_error
