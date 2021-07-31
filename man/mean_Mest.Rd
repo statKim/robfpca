@@ -4,10 +4,12 @@
 \alias{mean_Mest}
 \title{Marignal M-estimator for Mean function (mean estimator)}
 \usage{
-mean_Mest(x)
+mean_Mest(x, smooth = FALSE)
 }
 \arguments{
 \item{x}{a n x p matrix or a list containing Lt and Ly}
+
+\item{smooth}{If it is \code{TRUE}, smoothing spline is performed in \code{stats::smooth.spline()}. (Default is \code{FALSE}.)}
 }
 \value{
 a p-dimensional mean function

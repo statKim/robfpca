@@ -149,6 +149,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// smooth_spline_cpp
+Rcpp::NumericVector smooth_spline_cpp(Rcpp::NumericVector x);
+RcppExport SEXP _robfpca_smooth_spline_cpp(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(smooth_spline_cpp(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // huber_cpp
 double huber_cpp(NumericVector y, double k, double tol);
 RcppExport SEXP _robfpca_huber_cpp(SEXP ySEXP, SEXP kSEXP, SEXP tolSEXP) {
@@ -163,24 +174,67 @@ BEGIN_RCPP
 END_RCPP
 }
 // mean_Mest_cpp
-NumericVector mean_Mest_cpp(NumericMatrix X);
-RcppExport SEXP _robfpca_mean_Mest_cpp(SEXP XSEXP) {
+NumericVector mean_Mest_cpp(NumericMatrix X, bool smooth);
+RcppExport SEXP _robfpca_mean_Mest_cpp(SEXP XSEXP, SEXP smoothSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(mean_Mest_cpp(X));
+    Rcpp::traits::input_parameter< bool >::type smooth(smoothSEXP);
+    rcpp_result_gen = Rcpp::wrap(mean_Mest_cpp(X, smooth));
     return rcpp_result_gen;
 END_RCPP
 }
 // cov_Mest_cpp
-NumericMatrix cov_Mest_cpp(NumericMatrix X);
-RcppExport SEXP _robfpca_cov_Mest_cpp(SEXP XSEXP) {
+NumericMatrix cov_Mest_cpp(NumericMatrix X, bool smooth);
+RcppExport SEXP _robfpca_cov_Mest_cpp(SEXP XSEXP, SEXP smoothSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(cov_Mest_cpp(X));
+    Rcpp::traits::input_parameter< bool >::type smooth(smoothSEXP);
+    rcpp_result_gen = Rcpp::wrap(cov_Mest_cpp(X, smooth));
+    return rcpp_result_gen;
+END_RCPP
+}
+// expand_grid_cpp
+NumericMatrix expand_grid_cpp(NumericVector x, NumericVector y);
+RcppExport SEXP _robfpca_expand_grid_cpp(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(expand_grid_cpp(x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
+// get_raw_cov_cpp
+NumericMatrix get_raw_cov_cpp(NumericMatrix X, NumericVector mu, NumericVector gr, bool diag);
+RcppExport SEXP _robfpca_get_raw_cov_cpp(SEXP XSEXP, SEXP muSEXP, SEXP grSEXP, SEXP diagSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type gr(grSEXP);
+    Rcpp::traits::input_parameter< bool >::type diag(diagSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_raw_cov_cpp(X, mu, gr, diag));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cov_local_M_cpp
+NumericMatrix cov_local_M_cpp(NumericVector raw_cov, NumericVector s, NumericVector t, NumericVector gr, double h);
+RcppExport SEXP _robfpca_cov_local_M_cpp(SEXP raw_covSEXP, SEXP sSEXP, SEXP tSEXP, SEXP grSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type raw_cov(raw_covSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type s(sSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type gr(grSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(cov_local_M_cpp(raw_cov, s, t, gr, h));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -196,9 +250,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_wrm_fit", (DL_FUNC) &_robfpca_wrm_fit, 4},
     {"_robfpca_get_kernel", (DL_FUNC) &_robfpca_get_kernel, 4},
     {"_robfpca_wrm_smooth_cpp", (DL_FUNC) &_robfpca_wrm_smooth_cpp, 5},
+    {"_robfpca_smooth_spline_cpp", (DL_FUNC) &_robfpca_smooth_spline_cpp, 1},
     {"_robfpca_huber_cpp", (DL_FUNC) &_robfpca_huber_cpp, 3},
-    {"_robfpca_mean_Mest_cpp", (DL_FUNC) &_robfpca_mean_Mest_cpp, 1},
-    {"_robfpca_cov_Mest_cpp", (DL_FUNC) &_robfpca_cov_Mest_cpp, 1},
+    {"_robfpca_mean_Mest_cpp", (DL_FUNC) &_robfpca_mean_Mest_cpp, 2},
+    {"_robfpca_cov_Mest_cpp", (DL_FUNC) &_robfpca_cov_Mest_cpp, 2},
+    {"_robfpca_expand_grid_cpp", (DL_FUNC) &_robfpca_expand_grid_cpp, 2},
+    {"_robfpca_get_raw_cov_cpp", (DL_FUNC) &_robfpca_get_raw_cov_cpp, 4},
+    {"_robfpca_cov_local_M_cpp", (DL_FUNC) &_robfpca_cov_local_M_cpp, 5},
     {NULL, NULL, 0}
 };
 

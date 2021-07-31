@@ -4,7 +4,7 @@
 \alias{cov_Mest}
 \title{Marginal M-estimator for Covaraince function (covariance estimator)}
 \usage{
-cov_Mest(x, smooth = F, bw = 0.1, make.pos.semidef = TRUE, noise.var = 0)
+cov_Mest(x, smooth = FALSE, bw = NULL, make.pos.semidef = TRUE, noise.var = 0)
 }
 \arguments{
 \item{x}{a n x p matrix or a list containing Lt and Ly}

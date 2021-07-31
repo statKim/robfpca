@@ -41,15 +41,31 @@ wrm_smooth_cpp <- function(x, y, h, xgrid, kernel) {
     .Call('_robfpca_wrm_smooth_cpp', PACKAGE = 'robfpca', x, y, h, xgrid, kernel)
 }
 
+smooth_spline_cpp <- function(x) {
+    .Call('_robfpca_smooth_spline_cpp', PACKAGE = 'robfpca', x)
+}
+
 huber_cpp <- function(y, k = 1.5, tol = 1e-6) {
     .Call('_robfpca_huber_cpp', PACKAGE = 'robfpca', y, k, tol)
 }
 
-mean_Mest_cpp <- function(X) {
-    .Call('_robfpca_mean_Mest_cpp', PACKAGE = 'robfpca', X)
+mean_Mest_cpp <- function(X, smooth = FALSE) {
+    .Call('_robfpca_mean_Mest_cpp', PACKAGE = 'robfpca', X, smooth)
 }
 
-cov_Mest_cpp <- function(X) {
-    .Call('_robfpca_cov_Mest_cpp', PACKAGE = 'robfpca', X)
+cov_Mest_cpp <- function(X, smooth = FALSE) {
+    .Call('_robfpca_cov_Mest_cpp', PACKAGE = 'robfpca', X, smooth)
+}
+
+expand_grid_cpp <- function(x, y) {
+    .Call('_robfpca_expand_grid_cpp', PACKAGE = 'robfpca', x, y)
+}
+
+get_raw_cov_cpp <- function(X, mu, gr, diag = FALSE) {
+    .Call('_robfpca_get_raw_cov_cpp', PACKAGE = 'robfpca', X, mu, gr, diag)
+}
+
+cov_local_M_cpp <- function(raw_cov, s, t, gr, h = 0.02) {
+    .Call('_robfpca_cov_local_M_cpp', PACKAGE = 'robfpca', raw_cov, s, t, gr, h)
 }
 
