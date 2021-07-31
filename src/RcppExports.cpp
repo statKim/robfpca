@@ -209,6 +209,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// local_M_1D
+NumericVector local_M_1D(NumericVector x, NumericVector t, NumericVector new_t, double h);
+RcppExport SEXP _robfpca_local_M_1D(SEXP xSEXP, SEXP tSEXP, SEXP new_tSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type new_t(new_tSEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(local_M_1D(x, t, new_t, h));
+    return rcpp_result_gen;
+END_RCPP
+}
 // get_raw_cov_cpp
 NumericMatrix get_raw_cov_cpp(NumericMatrix X, NumericVector mu, NumericVector gr, bool diag);
 RcppExport SEXP _robfpca_get_raw_cov_cpp(SEXP XSEXP, SEXP muSEXP, SEXP grSEXP, SEXP diagSEXP) {
@@ -223,9 +237,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cov_local_M_cpp
-NumericMatrix cov_local_M_cpp(NumericVector raw_cov, NumericVector s, NumericVector t, NumericVector gr, double h);
-RcppExport SEXP _robfpca_cov_local_M_cpp(SEXP raw_covSEXP, SEXP sSEXP, SEXP tSEXP, SEXP grSEXP, SEXP hSEXP) {
+// local_M_2D
+NumericMatrix local_M_2D(NumericVector raw_cov, NumericVector s, NumericVector t, NumericVector gr, double h);
+RcppExport SEXP _robfpca_local_M_2D(SEXP raw_covSEXP, SEXP sSEXP, SEXP tSEXP, SEXP grSEXP, SEXP hSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -234,7 +248,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type t(tSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type gr(grSEXP);
     Rcpp::traits::input_parameter< double >::type h(hSEXP);
-    rcpp_result_gen = Rcpp::wrap(cov_local_M_cpp(raw_cov, s, t, gr, h));
+    rcpp_result_gen = Rcpp::wrap(local_M_2D(raw_cov, s, t, gr, h));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -255,8 +269,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_mean_Mest_cpp", (DL_FUNC) &_robfpca_mean_Mest_cpp, 2},
     {"_robfpca_cov_Mest_cpp", (DL_FUNC) &_robfpca_cov_Mest_cpp, 2},
     {"_robfpca_expand_grid_cpp", (DL_FUNC) &_robfpca_expand_grid_cpp, 2},
+    {"_robfpca_local_M_1D", (DL_FUNC) &_robfpca_local_M_1D, 4},
     {"_robfpca_get_raw_cov_cpp", (DL_FUNC) &_robfpca_get_raw_cov_cpp, 4},
-    {"_robfpca_cov_local_M_cpp", (DL_FUNC) &_robfpca_cov_local_M_cpp, 5},
+    {"_robfpca_local_M_2D", (DL_FUNC) &_robfpca_local_M_2D, 5},
     {NULL, NULL, 0}
 };
 

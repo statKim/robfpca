@@ -6,9 +6,10 @@
 \usage{
 cov_local_M(
   X,
-  bw = 0.02,
+  bw = NULL,
   gr = NULL,
   diag = FALSE,
+  cv = FALSE,
   ncores = 1,
   raw_cov = NULL,
   engine = "C++"
@@ -17,11 +18,13 @@ cov_local_M(
 \arguments{
 \item{X}{a n x p matrix}
 
-\item{bw}{a numeric value of bandwidth. If \code{bw} is \code{NULL}, then robust 5-fold cross-validation(using Huber loss) is performed to select optimal bandwidth. (Defalut is 0.02)}
+\item{bw}{a numeric value of bandwidth. (Defalut is (max(gr) - min(gr)) / 5.)}
 
 \item{gr}{a vector containing observed timepoints. (Default is \code{NULL}, and it is set to equal grid between 0 and 1.)}
 
 \item{diag}{logical value whether containing diagonal parts of the covariance. (Default is \code{FALSE}.)}
+
+\item{cv}{If it is \code{TRUE}, robust 5-fold cross-validation(using Huber loss) is performed to select the optimal bandwidth. (Default is \code{FALSE}.)}
 
 \item{ncores}{a number of cores to select bandwidth from robust 5-fold cross-validation. (Defalut is 1.)}
 

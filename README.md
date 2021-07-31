@@ -1,6 +1,6 @@
 # robfpca
 
-Robust principal component analysis for functional snippets
+Robust principal component analysis for partially observed functional data
 
 ## Installation
 ```r

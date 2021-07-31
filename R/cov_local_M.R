@@ -11,6 +11,69 @@ get_kernel <- function(t_vec, t, bw, method = "epan") {
 }
 
 
+#' Local M-estimator for Mean function (mean estimator)
+#'
+#' Obtain the local M-estimator for mean function.
+#'
+#' @param X a n x p matrix
+#' @param bw a numeric value of bandwidth. (Defalut is (max(gr) - min(gr)) / 5.)
+#' @param gr a vector containing observed timepoints. (Default is \code{NULL}, and it is set to equal grid between 0 and 1.)
+#' @param cv If it is \code{TRUE}, robust 5-fold cross-validation(using Huber loss) is performed to select the optimal bandwidth. (Default is \code{FALSE}.)
+#' @param ncores a number of cores to select bandwidth from robust 5-fold cross-validation. (Defalut is 1.)
+#'
+#' @return a vector containing the mean function from local M-estimation.
+#'
+#' @export
+#' @useDynLib robfpca
+mean_local_M <- function(X,
+                         bw = NULL,
+                         gr = NULL,
+                         cv = FALSE,
+                         ncores = 1) {
+    n <- nrow(X)
+    p <- ncol(X)
+
+    if (is.null(gr)) {
+        gr <- seq(0, 1, length.out = p)
+    }
+
+    if (is.null(bw)) {
+        bw <- (max(gr) - min(gr)) / 5
+        cat(paste("bw is not specified. ", round(bw, 3), "is used. \n"))
+    }
+
+    if (cv == TRUE) {
+        cv.obj <- cv.mean_local_M(X, ncores = ncores)   # 5-fold CV is performed
+        bw <- cv.obj$selected_bw
+        cat(paste("Optimal bandwidth=", round(bw, 3), "is selected! \n"))
+    }
+
+    # transform to observed value per timepoint
+    x <- as.numeric(X)
+    t <- rep(1:p, each = n)
+
+    # remove NA
+    ind_NA <- which(is.na(x))
+    x <- x[-ind_NA]
+    t <- t[-ind_NA]
+
+    # call C++ function
+    mu <- local_M_1D(x = x,
+                     t = t,
+                     new_t = gr,
+                     h = bw)
+
+    return(mu)
+}
+
+
+cv.mean_local_M <- function(X,
+                            ncores = 1) {
+
+}
+
+
+
 #' Get Raw Covariances for Functional Data
 #'
 #' Obtain the raw covariances $C(s,t)$.
@@ -104,9 +167,10 @@ get_raw_cov <- function(X,
 #' It provides 2 options for implementing R or C++.
 #'
 #' @param X a n x p matrix
-#' @param bw a numeric value of bandwidth. If \code{bw} is \code{NULL}, then robust 5-fold cross-validation(using Huber loss) is performed to select optimal bandwidth. (Defalut is 0.02)
+#' @param bw a numeric value of bandwidth. (Defalut is (max(gr) - min(gr)) / 5.)
 #' @param gr a vector containing observed timepoints. (Default is \code{NULL}, and it is set to equal grid between 0 and 1.)
 #' @param diag logical value whether containing diagonal parts of the covariance. (Default is \code{FALSE}.)
+#' @param cv If it is \code{TRUE}, robust 5-fold cross-validation(using Huber loss) is performed to select the optimal bandwidth. (Default is \code{FALSE}.)
 #' @param ncores a number of cores to select bandwidth from robust 5-fold cross-validation. (Defalut is 1.)
 #' @param raw_cov a dataframe which is the return value from \code{get_raw_cov()}. (Default is \code{NULL}, and it is calculated automatically.)
 #' @param engine the option for implementation. (Defalut is \code{C++}, and it is much faster than \code{R}.)
@@ -116,9 +180,10 @@ get_raw_cov <- function(X,
 #' @export
 #' @useDynLib robfpca
 cov_local_M <- function(X,
-                        bw = 0.02,
+                        bw = NULL,
                         gr = NULL,
                         diag = FALSE,
+                        cv = FALSE,
                         ncores = 1,
                         raw_cov = NULL,
                         engine = "C++") {
@@ -127,7 +192,13 @@ cov_local_M <- function(X,
     }
     p <- length(gr)
 
+
     if (is.null(bw)) {
+        bw <- (max(gr) - min(gr)) / 5
+        cat(paste("bw is not specified. ", round(bw, 3), "is used. \n"))
+    }
+
+    if (cv == TRUE) {
         cv.obj <- cv.cov_local_M(X, ncores = ncores)   # 5-fold CV is performed
         bw <- cv.obj$selected_bw
         cat(paste("Optimal bandwidth=", round(bw, 3), "is selected! \n"))
@@ -146,11 +217,11 @@ cov_local_M <- function(X,
     raw_cov <- raw_cov$cov
 
     if (engine == "C++") {
-        cov_mat <- cov_local_M_cpp(raw_cov = raw_cov,
-                                   s = s,
-                                   t = t,
-                                   gr = gr,
-                                   h = bw)
+        cov_mat <- local_M_2D(raw_cov = raw_cov,
+                              s = s,
+                              t = t,
+                              gr = gr,
+                              h = bw)
     } else if (engine == "R") {
         cov_mat <- matrix(NA, p, p)
         for (i in 1:p) {

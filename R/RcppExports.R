@@ -61,11 +61,15 @@ expand_grid_cpp <- function(x, y) {
     .Call('_robfpca_expand_grid_cpp', PACKAGE = 'robfpca', x, y)
 }
 
+local_M_1D <- function(x, t, new_t, h) {
+    .Call('_robfpca_local_M_1D', PACKAGE = 'robfpca', x, t, new_t, h)
+}
+
 get_raw_cov_cpp <- function(X, mu, gr, diag = FALSE) {
     .Call('_robfpca_get_raw_cov_cpp', PACKAGE = 'robfpca', X, mu, gr, diag)
 }
 
-cov_local_M_cpp <- function(raw_cov, s, t, gr, h = 0.02) {
-    .Call('_robfpca_cov_local_M_cpp', PACKAGE = 'robfpca', raw_cov, s, t, gr, h)
+local_M_2D <- function(raw_cov, s, t, gr, h = 0.02) {
+    .Call('_robfpca_local_M_2D', PACKAGE = 'robfpca', raw_cov, s, t, gr, h)
 }
 

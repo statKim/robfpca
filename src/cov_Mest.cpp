@@ -207,24 +207,22 @@ NumericMatrix expand_grid_cpp(NumericVector x,
 }
 
 
-// // Local M-estimator
-// // [[Rcpp::export]]
-// NumericVector local_M_1D(NumericMatrix X,
-//                          NumericVector obs_t,
-//                          NumericVector new_t,
-//                          double h) {
-//   int p = new_t.length();
-//   IntegerVector idx = seq(0, p-1);
-//   NumericVector mu(p);
-//   for (int i = 0; i < p; i++) {
-//     IntegerVector i_neighbor = idx[obs_t < new_t[i] + h & obs_t > new_t[i] - h];
-//     NumericVector X_i_neighbor;
-//     mu[i] = huber_cpp(X_i_neighbor);
-//   }
-//
-//   return mu;
-// }
+// 1-dimensional Local M-estimator
+// [[Rcpp::export]]
+NumericVector local_M_1D(NumericVector x,
+                         NumericVector t,
+                         NumericVector new_t,
+                         double h) {
+  int p = new_t.length();
+  NumericVector mu(p);
+  for (int i = 0; i < p; i++) {
+    LogicalVector i_neighbor = abs(t - new_t[i]) < h;
+    NumericVector X_i_neighbor = x[i_neighbor];
+    mu[i] = huber_cpp(X_i_neighbor);
+  }
 
+  return mu;
+}
 
 
 
@@ -300,13 +298,14 @@ NumericMatrix get_raw_cov_cpp(NumericMatrix X,
 }
 
 
+// 2-dimensional Local M-estimator
 // for loop of "cov_local_M" in R function
 // [[Rcpp::export]]
-NumericMatrix cov_local_M_cpp(NumericVector raw_cov,
-                              NumericVector s,
-                              NumericVector t,
-                              NumericVector gr,
-                              double h = 0.02) {
+NumericMatrix local_M_2D(NumericVector raw_cov,
+                         NumericVector s,
+                         NumericVector t,
+                         NumericVector gr,
+                         double h = 0.02) {
     int p = gr.length();
     LogicalVector i_neighbor(s.length());
     LogicalVector j_neighbor(s.length());
