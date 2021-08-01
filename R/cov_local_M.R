@@ -37,9 +37,9 @@ mean_local_M <- function(X,
         gr <- seq(0, 1, length.out = p)
     }
 
-    if (is.null(bw)) {
+    if (is.null(bw) & (cv == FALSE)) {
         bw <- (max(gr) - min(gr)) / 5
-        cat(paste("bw is not specified. ", round(bw, 3), "is used. \n"))
+        cat(paste("bw is not specified. bw=", round(bw, 3), "is used. \n"))
     }
 
     if (cv == TRUE) {
@@ -67,9 +67,164 @@ mean_local_M <- function(X,
 }
 
 
+#' Robust K-fold Cross-Validation for the Optimal Bandwidth of 1-Dimensional Local M-estimator for Mean function
+#'
+#' Perform robust K-fold cross-validation to select the optimal bandwidth of 1-dimensional local M-estimator for mean function.
+#'
+#' It provides 2 options for implementing R or C++.
+#'
+#' @param X a n x p matrix
+#' @param bw_cand a numeric vector of bandwidth candidate. (Default is \code{NULL}, and it is selected automatically.)
+#' @param K a number of folds for K-fold cross-validation. (Default is 5.)
+#' @param ncores a number of cores to select bandwidth from robust 5-fold cross-validation. (Defalut is 1.)
+#' @param delta a cut-off value in Huber loss function. (Default is 1.345.)
+#' @param engine the option for implementation. (Defalut is \code{C++}, and it is much faster than \code{R}.)
+#'
+#' @return a list contatining as follows:
+#' \item{selected_bw}{the optimal bandwidth selected from the robust K-fold cross-validation.}
+#' \item{cv.error}{a matrix containing CV error per bandwidth candidates.}
+#'
+#' @export
 cv.mean_local_M <- function(X,
-                            ncores = 1) {
+                            bw_cand = NULL,
+                            K = 5,
+                            ncores = 1,
+                            delta = 1.345,
+                            engine = "C++") {
+    if (is.list(X)) {
+        gr <- sort(unique(unlist(X$Lt)))
+        X <- list2matrix(X)
+    } else {
+        gr <- seq(0, 1, length.out = ncol(X))
+    }
 
+    n <- nrow(X)
+    p <- ncol(X)
+
+    # transform to observed value per timepoint
+    x <- as.numeric(X)
+    t <- rep(gr, each = n)
+
+    # remove NA
+    ind_NA <- which(is.na(x))
+    x <- x[-ind_NA]
+    t <- t[-ind_NA]
+
+    # bandwidth candidates
+    if (is.null(bw_cand)) {
+        a <- min(gr)
+        b <- max(gr)
+        bw_cand <- seq(min(diff(gr))*1.5, (b-a)/3, length.out = 10)
+        # bw_cand <- 10^seq(-2, 0, length.out = 10) * (b - a)/3
+    }
+
+    # get index for each folds
+    folds <- list()
+    fold_num <- n %/% K   # the number of curves for each folds
+    fold_sort <- sample(1:n, n)
+    for (k in 1:K) {
+        ind <- (fold_num*(k-1)+1):(fold_num*k)
+        if (k == K) {
+            ind <- (fold_num*(k-1)+1):n
+        }
+        folds[[k]] <- fold_sort[ind]
+    }
+
+    # K-fold cross-validation
+    if (ncores > 1) {
+        # Parallel computing setting
+        if (ncores > parallel::detectCores()) {
+            ncores <- parallel::detectCores() - 1
+            warning(paste0("ncores is too large. We now use ", ncores, " cores."))
+        }
+        # ncores <- detectCores() - 3
+        cl <- parallel::makeCluster(ncores)
+        doParallel::registerDoParallel(cl)
+
+        # matrix of bw_cand and fold
+        bw_fold_mat <- data.frame(bw_cand = rep(bw_cand, each = K),
+                                  fold = rep(1:K, length(bw_cand)))
+
+        cv_error <- foreach::foreach(i = 1:nrow(bw_fold_mat),
+                                     .combine = "c",
+                                     .packages = c("robfpca"),
+                                     .errorhandling = "pass") %dopar% {
+            bw <- bw_fold_mat$bw_cand[i]   # bandwidth candidate
+            k <- bw_fold_mat$fold[i]   # fold for K-fold CV
+
+            # data of kth fold
+            x_train <- x[ -folds[[k]] ]
+            x_test <- x[ folds[[k]] ]
+            t_train <- t[ -folds[[k]] ]
+            t_test <- t[ folds[[k]] ]
+
+            # call C++ function
+            mu <- local_M_1D(x = x_train,
+                             t = t_train,
+                             new_t = gr,
+                             h = bw)
+
+            df <- dplyr::left_join(
+                data.frame(x = x_test,
+                           t = t_test),
+                data.frame(mu = mu,
+                           t = gr),
+                by = c("t")
+            )
+
+            # robust loss (Huber loss)
+            a <- abs(df$x - df$mu)
+            err_huber <- ifelse(a > delta, delta*(a - delta/2), a^2/2)
+            err <- sum(err_huber)/K
+
+            return(err)
+        }
+        parallel::stopCluster(cl)
+
+        bw_fold_mat$cv_error <- cv_error
+        cv_obj <- bw_fold_mat %>%
+            dplyr::group_by(bw_cand) %>%
+            dplyr::summarise(cv_error = sum(cv_error))
+
+        bw <- list(selected_bw = cv_obj$bw_cand[ which.min(cv_obj$cv_error) ],
+                   cv.error = as.data.frame(cv_obj))
+    } else {
+        cv_error <- rep(0, length(bw_cand))
+        for (k in 1:K) {
+            # data of kth fold
+            x_train <- x[ -folds[[k]] ]
+            x_test <- x[ folds[[k]] ]
+            t_train <- t[ -folds[[k]] ]
+            t_test <- t[ folds[[k]] ]
+
+            for (i in 1:length(bw_cand)) {
+                # call C++ function
+                mu <- local_M_1D(x = x_train,
+                                 t = t_train,
+                                 new_t = gr,
+                                 h = bw_cand[i])
+
+                df <- dplyr::left_join(
+                    data.frame(x = x_test,
+                               t = t_test),
+                    data.frame(mu = mu,
+                               t = gr),
+                    by = c("t")
+                )
+
+                # robust loss (Huber loss)
+                a <- abs(df$x - df$mu)
+                err_huber <- ifelse(a > delta, delta*(a - delta/2), a^2/2)
+                cv_error[i] <- cv_error[i] + sum(err_huber)/K
+            }
+        }
+
+        bw <- list(selected_bw = bw_cand[ which.min(cv_error) ],
+                   cv.error = data.frame(bw = bw_cand,
+                                         error = cv_error))
+    }
+
+    return(bw)
 }
 
 
@@ -106,7 +261,10 @@ get_raw_cov <- function(X,
     p <- ncol(X)
 
     if (is.null(mu)) {
-        mu <- mean_Mest(X)
+        mu <- mean_local_M(X,
+                           bw = NULL,
+                           gr = gr,
+                           cv = FALSE)
     }
 
     if (engine == "C++") {
@@ -193,7 +351,7 @@ cov_local_M <- function(X,
     p <- length(gr)
 
 
-    if (is.null(bw)) {
+    if (is.null(bw) & (cv == FALSE)) {
         bw <- (max(gr) - min(gr)) / 5
         cat(paste("bw is not specified. ", round(bw, 3), "is used. \n"))
     }
@@ -206,8 +364,13 @@ cov_local_M <- function(X,
 
     # raw covariance object from "get_raw_cov" function
     if (is.null(raw_cov)) {
+        mu <- mean_local_M(X,
+                           bw = bw,
+                           gr = gr,
+                           cv = cv,
+                           ncores = ncores)
         raw_cov <- get_raw_cov(X,
-                               mu = NULL,
+                               mu = mu,
                                gr = gr,
                                diag = diag,
                                engine = engine)
@@ -275,6 +438,7 @@ cov_local_M <- function(X,
 #'
 #' @param X a n x p matrix
 #' @param bw_cand a numeric vector of bandwidth candidate. (Default is \code{NULL}, and it is selected automatically.)
+#' @param mu a numeric vector of mean function. If it is \code{NULL}, robust 5-fold CV is performed for estimating mean function. (Default is \code{NULL}.)
 #' @param K a number of folds for K-fold cross-validation. (Default is 5.)
 #' @param ncores a number of cores to select bandwidth from robust 5-fold cross-validation. (Defalut is 1.)
 #' @param delta a cut-off value in Huber loss function. (Default is 1.345.)
@@ -287,6 +451,7 @@ cov_local_M <- function(X,
 #' @export
 cv.cov_local_M <- function(X,
                            bw_cand = NULL,
+                           mu = NULL,
                            K = 5,
                            ncores = 1,
                            delta = 1.345,
@@ -302,8 +467,15 @@ cv.cov_local_M <- function(X,
     n <- nrow(X)
     p <- ncol(X)
 
+    if (is.null(mu)) {
+        mu <- mean_local_M(X,
+                           bw = NULL,
+                           gr = gr,
+                           cv = TRUE,
+                           ncores = ncores)
+    }
+
     # raw covariance
-    mu <- mean_Mest(X)
     cov_raw <- get_raw_cov(X,
                            mu = mu,
                            gr = gr,
