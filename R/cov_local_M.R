@@ -356,19 +356,24 @@ cov_local_M <- function(X,
         cat(paste("bw is not specified. ", round(bw, 3), "is used. \n"))
     }
 
+    # mean function
+    mu <- mean_local_M(X,
+                       bw = bw,
+                       gr = gr,
+                       cv = cv,
+                       ncores = ncores)
+
+    # 5-fold CV
     if (cv == TRUE) {
-        cv.obj <- cv.cov_local_M(X, ncores = ncores)   # 5-fold CV is performed
+        cv.obj <- cv.cov_local_M(X,
+                                 mu = mu,
+                                 ncores = ncores)   # 5-fold CV is performed
         bw <- cv.obj$selected_bw
         cat(paste("Optimal bandwidth=", round(bw, 3), "is selected! \n"))
     }
 
     # raw covariance object from "get_raw_cov" function
     if (is.null(raw_cov)) {
-        mu <- mean_local_M(X,
-                           bw = bw,
-                           gr = gr,
-                           cv = cv,
-                           ncores = ncores)
         raw_cov <- get_raw_cov(X,
                                mu = mu,
                                gr = gr,
