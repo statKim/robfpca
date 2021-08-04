@@ -58,28 +58,32 @@ cov_Mest <- function(x,
 
     # 2-dimensional smoothing - does not need to adjust noise variance
     if (smooth == T) {
-        if (is.null(bw)) {
-            cv.obj <- cv.cov_Mest(x, ncores = 1)   # 5-fold CV is performed
-            bw <- cv.obj$selected_bw
-            cat(paste("Optimal bandwidth=", round(bw, 3), "is selected! \n"))
-        }
-
-        # element-wise covariances
         gr <- seq(0, 1, length.out = p)
-        st <- expand.grid(gr, gr)
-        cov_st <- as.numeric(rob.var)
-
-        # # remove diagonal parts from raw covariance (See Yao et al.(2005))
-        # ind <- which(st[, 1] == st[, 2], arr.ind = T)
-        # st <- st[-ind, ]
-        # cov_st <- cov_st[-ind]
-
-        rob.var <- fields::smooth.2d(cov_st,
-                                     x = st,
-                                     surface = F,
-                                     theta = bw,
-                                     nrow = p,
-                                     ncol = p)
+        cov.sm.obj <- refund::fbps(rob.var, list(x = gr,
+                                                 z = gr))
+        rob.var <- cov.sm.obj$Yhat
+        # if (is.null(bw)) {
+        #     cv.obj <- cv.cov_Mest(x, ncores = 1)   # 5-fold CV is performed
+        #     bw <- cv.obj$selected_bw
+        #     cat(paste("Optimal bandwidth=", round(bw, 3), "is selected! \n"))
+        # }
+        #
+        # # element-wise covariances
+        # gr <- seq(0, 1, length.out = p)
+        # st <- expand.grid(gr, gr)
+        # cov_st <- as.numeric(rob.var)
+        #
+        # # # remove diagonal parts from raw covariance (See Yao et al.(2005))
+        # # ind <- which(st[, 1] == st[, 2], arr.ind = T)
+        # # st <- st[-ind, ]
+        # # cov_st <- cov_st[-ind]
+        #
+        # rob.var <- fields::smooth.2d(cov_st,
+        #                              x = st,
+        #                              surface = F,
+        #                              theta = bw,
+        #                              nrow = p,
+        #                              ncol = p)
     }
     # else {
     #     # subtract noise variance - Need for not smoothing
