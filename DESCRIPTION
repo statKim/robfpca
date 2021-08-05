@@ -6,7 +6,7 @@ Date: 2021-04-17
 Authors@R: c(person("Hyunsung", "Kim", role = c("aut","cre"), 
                     email = "hyunsung1021@gmail.com"))
 Maintainer: Hyunsung Kim <hyunsung1021@gmail.com>
-Description: More about what it does (maybe more than one line)
+Description: Robust principal component analysis for partially observed functional data
     Use four spaces when indenting paragraphs within the Description.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -19,15 +19,15 @@ Imports:
     Rcpp,
     RcppEigen,
     stats,
+    graphics,
+    MASS,
     dplyr,
     tidyr,
     doParallel,
     fdapace,
     foreach,
-    robfilter,
     pracma,
-    graphics,
-    fields,
-    refund
+    refund,
+    fields
 Suggests: 
-    MASS
+    robfilter
