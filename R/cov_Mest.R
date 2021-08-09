@@ -101,6 +101,7 @@ cov_Mest <- function(x,
         if (is.complex(eig$values)) {
             idx <- which(abs(Im(eig$values)) < 1e-6)
             eig$values <- Re(eig$values[idx])
+            eig$vectors <- Re(eig$vectors[, idx])
         }
 
         k <- which(eig$values > 0)
