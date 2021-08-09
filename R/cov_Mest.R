@@ -56,6 +56,9 @@ cov_Mest <- function(x,
     # obtain the covariance based on marignal M-estimator via C++ code
     rob.var <- cov_Mest_cpp(x, smooth)
 
+    # subtract noise variance
+    diag(rob.var) <- diag(rob.var) - noise.var
+
     # 2-dimensional smoothing - does not need to adjust noise variance
     if (smooth == T) {
         gr <- seq(0, 1, length.out = p)
@@ -93,6 +96,13 @@ cov_Mest <- function(x,
     # make positive-semi-definite
     if (isTRUE(make.pos.semidef)) {
         eig <- eigen(rob.var)
+
+        # if complex eigenvalues exists, get the real parts only.
+        if (is.complex(eig$values)) {
+            idx <- which(abs(Im(eig$values)) < 1e-6)
+            eig$values <- Re(eig$values[idx])
+        }
+
         k <- which(eig$values > 0)
         lambda <- eig$values[k]
         phi <- matrix(eig$vectors[, k],
@@ -106,9 +116,6 @@ cov_Mest <- function(x,
         #     rob.var <- eig$values[k] * (eig$vectors[, k] %*% t(eig$vectors[, k]))
         # }
     }
-
-    # subtract noise variance
-    diag(rob.var) <- diag(rob.var) - noise.var
 
     return(rob.var)
 }
