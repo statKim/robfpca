@@ -61,9 +61,12 @@ cov_Mest <- function(x,
 
     # 2-dimensional smoothing - does not need to adjust noise variance
     if (smooth == T) {
+        knots <- min(p/2, 35)   # Remark 3 from Xiao(2013)
         gr <- seq(0, 1, length.out = p)
-        cov.sm.obj <- refund::fbps(rob.var, list(x = gr,
-                                                 z = gr))
+        cov.sm.obj <- refund::fbps(rob.var,
+                                   knots = knots,
+                                   list(x = gr,
+                                        z = gr))
         rob.var <- cov.sm.obj$Yhat
         # if (is.null(bw)) {
         #     cv.obj <- cv.cov_Mest(x, ncores = 1)   # 5-fold CV is performed
