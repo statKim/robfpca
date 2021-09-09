@@ -79,6 +79,8 @@ funPCA <- function(Lt,
 
 
     res <- list(
+        data = list(Lt = Lt,
+                    Ly = Ly),
         lambda = eig.obj$lambda[1:K],
         eig.fun = matrix(eig.obj$phi[, 1:K],
                          ncol = K),
