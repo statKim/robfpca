@@ -11,7 +11,7 @@ covfunc.rob(
   method = c("Huber", "WRM", "Bisquare"),
   mu = NULL,
   sig2x = NULL,
-  sig2 = NULL,
+  sig2e = NULL,
   corf = NULL,
   kernel = "epanechnikov",
   bw = NULL,
@@ -37,7 +37,7 @@ covfunc.rob(
 
 \item{sig2x}{Optional, \code{varfunc.rob} object from \code{varfunc.rob()}}
 
-\item{sig2}{Optional, a noise variance estimator obtained from \code{sigma2.rob()}}
+\item{sig2e}{Optional, a noise variance estimator obtained from \code{sigma2.rob()}}
 
 \item{corf}{a correlation structure, it should be "function" class(x, y). Default is matern correlation.}
 
