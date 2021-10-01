@@ -124,10 +124,8 @@ covfunc.rob <- function(Lt,
         D <- 1
     }
 
-    if (is.null(domain)) {
-        t.vec <- unlist(Lt)
-        domain <- c(min(t.vec), max(t.vec))
-    }
+    # range of timepoint
+    domain <- range(unlist(Lt))
 
     th.est <- estimate.theta(Lt,
                              Ly,
