@@ -10,7 +10,7 @@ covfunc.rob(
   newt = NULL,
   method = c("Huber", "WRM", "Bisquare"),
   mu = NULL,
-  var = NULL,
+  sig2x = NULL,
   sig2 = NULL,
   corf = NULL,
   kernel = "epanechnikov",
@@ -35,7 +35,7 @@ covfunc.rob(
 
 \item{mu}{Optional, \code{meanfunc.rob} object from \code{meanfunc.rob()}}
 
-\item{var}{Optional, \code{varfunc.rob} object from \code{varfunc.rob()}}
+\item{sig2x}{Optional, \code{varfunc.rob} object from \code{varfunc.rob()}}
 
 \item{sig2}{Optional, a noise variance estimator obtained from \code{sigma2.rob()}}
 

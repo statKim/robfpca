@@ -9,7 +9,7 @@
 #' @param newt a vector containing time points to estimate
 #' @param method "huber", "WRM" are supported
 #' @param mu Optional, \code{meanfunc.rob} object from \code{meanfunc.rob()}
-#' @param var Optional, \code{varfunc.rob} object from \code{varfunc.rob()}
+#' @param sig2x Optional, \code{varfunc.rob} object from \code{varfunc.rob()}
 #' @param sig2 Optional, a noise variance estimator obtained from \code{sigma2.rob()}
 #' @param corf a correlation structure, it should be "function" class(x, y). Default is matern correlation.
 #' @param kernel a kernel function for local polynomial smoothing ("epanechnikov", "gauss" are supported.)
@@ -39,7 +39,7 @@ covfunc.rob <- function(Lt,
                         newt = NULL,
                         method = c("Huber","WRM","Bisquare"),
                         mu = NULL,
-                        var = NULL,
+                        sig2x = NULL,
                         sig2 = NULL,
                         corf = NULL,
                         kernel = "epanechnikov",
