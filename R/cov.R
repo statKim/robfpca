@@ -8,9 +8,19 @@
 #' @param Ly a list of vectors containing observations for each curve
 #' @param newt a vector containing time points to estimate
 #' @param method "huber", "WRM" are supported
-#' @param mu \code{meanfunc.rob} object from \code{meanfunc.rob()}
-#' @param weig weight
-#' @param ... additional options of \code{varfunc.rob()}
+#' @param mu Optional, \code{meanfunc.rob} object from \code{meanfunc.rob()}
+#' @param var Optional, \code{varfunc.rob} object from \code{varfunc.rob()}
+#' @param sig2 Optional, a noise variance estimator obtained from \code{sigma2.rob()}
+#' @param corf a correlation structure, it should be "function" class(x, y). Default is matern correlation.
+#' @param kernel a kernel function for local polynomial smoothing ("epanechnikov", "gauss" are supported.)
+#' @param bw a bandwidth for local polynomial smoothing.
+#' @param delta If method == "Huber", it uses for $\\rho$ function in Huber loss.
+#' @param deg a numeric scalar of polynomial degrees for local polynomial smoothing
+#' @param cv If TRUE, K-fold cross-validation is performed for bandwidth.
+#' @param ncores a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.
+#' @param cv_bw_loss a loss function for K-fold cross-validation
+#' @param cv_K a number of folds for K-fold cross-validation
+#' @param ... additional options
 #'
 #' @return a \code{covfunc.rob} object contatining as follows:
 #' \item{sig2}{a noise variance estimate}
@@ -29,7 +39,17 @@ covfunc.rob <- function(Lt,
                         newt = NULL,
                         method = c("Huber","WRM","Bisquare"),
                         mu = NULL,
-                        weig = NULL,
+                        var = NULL,
+                        sig2 = NULL,
+                        corf = NULL,
+                        kernel = "epanechnikov",
+                        bw = NULL,
+                        delta = 1.345,
+                        deg = 1,
+                        cv = FALSE,
+                        ncores = 1,
+                        cv_bw_loss = "HUBER",
+                        cv_K = 5,
                         ...) {
 
     method <- toupper(method)
@@ -37,45 +57,21 @@ covfunc.rob <- function(Lt,
         stop(paste0(method, " is not provided. Check method parameter."))
     }
 
-    return(covfunc.rob.huber(Lt, Ly, mu = mu, newt = newt, method = method, ...))
-    # if (method == 'Huber') {
-    #   return(cov.huber(Lt, Ly, mu = mu, newt = newt, ...))
-    # } else {
-    #   stop("method is not supported.")
-    # }
-}
-
-covfunc.rob.huber <- function(Lt,
-                              Ly,
-                              newt = NULL,
-                              method = "HUBER",
-                              domain = NULL,
-                              weig = NULL,
-                              corf = NULL, # correlation function(theta,x,y)
-                              mu = NULL,
-                              sig2e = NULL,
-                              sig2x = NULL,
-                              pfunc = NULL,
-                              theta0 = NULL,
-                              lb = NULL,
-                              ub = NULL,
-                              D = NULL,
-                              kernel = "epanechnikov",
-                              ...) {
-
-    if (is.null(corf)) {
-        corf <- function(x, y, theta) {
-            matern(x, y, nu = theta)
-        }
-        D <- 1
-    } else {
-        if (is.null(theta0) && is.null(D)) {
-            stop('The dimension D must be specified')
-        }
-    }
-
+    ### Mean estimation
     if (is.null(mu)) {
-        mu <- meanfunc.rob(Lt, Ly, kernel = kernel, method = method)   # Huber option
+        mu <- meanfunc.rob(Lt = Lt,
+                           Ly = Ly,
+                           newt = NULL,
+                           method = method,
+                           kernel = kernel,
+                           bw = bw,
+                           delta = delta,
+                           deg = deg,
+                           cv = cv,
+                           ncores = ncores,
+                           cv_bw_loss = cv_bw_loss,
+                           cv_K = cv_K)
+        # mu <- meanfunc.rob(Lt, Ly, kernel = kernel, method = method)   # Huber option
     }
     # mu.hat <- predict(mu, unlist(Lt))   #  TOO SLOW => Need to improve speed
     n <- length(Lt)
@@ -94,10 +90,8 @@ covfunc.rob.huber <- function(Lt,
 
     # cat("Finish mean estimation! \n")
 
-    # if (is.null(sig2e)) {
-    #   sig2e <- sigma2.rob(Lt, Ly)
-    # }
 
+    ### Variance estimation
     if (is.null(sig2x)) {
         # sig2x <- varfunc(Lt,Ly,mu=mu,sig2=sig2e)
         sig2x <- varfunc.rob(Lt, Ly, mu = mu, sig2 = sig2e, kernel = kernel,
@@ -120,6 +114,16 @@ covfunc.rob.huber <- function(Lt,
 
     # cat("Finish variance estimation! \n")
 
+
+
+    ### Covariance (off-diagonal parts) estimation
+    if (is.null(corf)) {
+        corf <- function(x, y, theta) {
+            matern(x, y, nu = theta)
+        }
+        D <- 1
+    }
+
     if (is.null(domain)) {
         t.vec <- unlist(Lt)
         domain <- c(min(t.vec), max(t.vec))
@@ -131,31 +135,32 @@ covfunc.rob.huber <- function(Lt,
                              var.hat = var.hat,
                              mu.hat = mu.hat,
                              method = 'LS',
-                             rho = corf,
-                             weig = weig,
-                             pfunc = pfunc,
-                             theta.lb = lb,
-                             theta.ub = ub,
-                             theta0 = theta0,
+                             rho = corf,   # correlation function(theta,x,y)
+                             weig = NULL,
+                             pfunc = NULL,
+                             theta.lb = NULL,
+                             theta.ub = NULL,
+                             theta0 = NULL,
                              domain = domain)$LS
 
-    rslt <- list(sig2e = sig2e,
-                 theta = th.est,
-                 mu.hat = mu.hat,
-                 domain = domain,
-                 mu = mu,
-                 sig2x = sig2x,
-                 rho = function(x, y) { corf(x, y, th.est) },
-                 method = method)
-    class(rslt) <- 'covfunc.rob'
+    cov.obj <- list(sig2e = sig2e,
+                    theta = th.est,
+                    mu.hat = mu.hat,
+                    domain = domain,
+                    mu = mu,
+                    sig2x = sig2x,
+                    rho = function(x, y) { corf(x, y, th.est) },
+                    method = method)
+    class(cov.obj) <- 'covfunc.rob'
 
     if (!is.null(newt)) {
-        rslt$fitted <- predict(rslt, newt)
+        cov.obj$fitted <- predict(cov.obj, newt)
     }
     # cat("Finish covariance estimation! \n")
 
-    return(rslt)
+    return(cov.obj)
 }
+
 
 
 #' Predict covariance at new time points

@@ -10,7 +10,17 @@ covfunc.rob(
   newt = NULL,
   method = c("Huber", "WRM", "Bisquare"),
   mu = NULL,
-  weig = NULL,
+  var = NULL,
+  sig2 = NULL,
+  corf = NULL,
+  kernel = "epanechnikov",
+  bw = NULL,
+  delta = 1.345,
+  deg = 1,
+  cv = FALSE,
+  ncores = 1,
+  cv_bw_loss = "HUBER",
+  cv_K = 5,
   ...
 )
 }
@@ -23,11 +33,31 @@ covfunc.rob(
 
 \item{method}{"huber", "WRM" are supported}
 
-\item{mu}{\code{meanfunc.rob} object from \code{meanfunc.rob()}}
+\item{mu}{Optional, \code{meanfunc.rob} object from \code{meanfunc.rob()}}
 
-\item{weig}{weight}
+\item{var}{Optional, \code{varfunc.rob} object from \code{varfunc.rob()}}
 
-\item{...}{additional options of \code{varfunc.rob()}}
+\item{sig2}{Optional, a noise variance estimator obtained from \code{sigma2.rob()}}
+
+\item{corf}{a correlation structure, it should be "function" class(x, y). Default is matern correlation.}
+
+\item{kernel}{a kernel function for local polynomial smoothing ("epanechnikov", "gauss" are supported.)}
+
+\item{bw}{a bandwidth for local polynomial smoothing.}
+
+\item{delta}{If method == "Huber", it uses for $\\rho$ function in Huber loss.}
+
+\item{deg}{a numeric scalar of polynomial degrees for local polynomial smoothing}
+
+\item{cv}{If TRUE, K-fold cross-validation is performed for bandwidth.}
+
+\item{ncores}{a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.}
+
+\item{cv_bw_loss}{a loss function for K-fold cross-validation}
+
+\item{cv_K}{a number of folds for K-fold cross-validation}
+
+\item{...}{additional options}
 }
 \value{
 a \code{covfunc.rob} object contatining as follows:

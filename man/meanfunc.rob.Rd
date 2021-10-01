@@ -11,10 +11,10 @@ meanfunc.rob(
   method = c("L2", "Huber", "WRM", "Bisquare"),
   kernel = "epanechnikov",
   bw = NULL,
-  delta = NULL,
+  delta = 1.345,
   deg = 1,
+  cv = FALSE,
   ncores = 1,
-  cv_delta_loss = "L1",
   cv_bw_loss = "HUBER",
   cv_K = 5,
   ...
@@ -31,17 +31,15 @@ meanfunc.rob(
 
 \item{kernel}{a kernel function for kernel smoothing ("epanechnikov", "gauss" are supported.)}
 
-\item{bw}{a bandwidth.
-If bw = NULL, it is selected from K-fold cross-validation.}
+\item{bw}{a bandwidth.}
 
-\item{delta}{If method == "Huber", it uses for $\\rho$ function in Huber loss.
-If delta = NULL, it is selected from K-fold cross-validation.}
+\item{delta}{If method == "Huber", it uses for $\\rho$ function in Huber loss.}
 
 \item{deg}{a numeric scalar of polynomial degrees for the kernel smoother}
 
-\item{ncores}{a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.}
+\item{cv}{If TRUE, K-fold cross-validation is performed.}
 
-\item{cv_delta_loss}{a loss function for K-fold cross-validation for delta in Huber function}
+\item{ncores}{a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.}
 
 \item{cv_bw_loss}{a loss function for K-fold cross-validation for bandwidth}
 
@@ -61,6 +59,7 @@ a \code{meanfunc.rob} object contatining follows:
 \item{deg}{a degree of polnomials}
 \item{domain}{a range of timepoints}
 \item{yend}{yend}
+\item{cv_obj}{an object of K-fold CV for bandwidth}
 \item{cv_optns}{a list containing options of K-fold cross-validation. (\code{K} = \code{cv_K}, \code{ncore} = \code{ncores}, \code{delta_loss} = \code{cv_delta_loss}, \code{bw_loss} = \code{cv_bw_loss})}
 }
 \description{

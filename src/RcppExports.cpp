@@ -52,9 +52,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// locpolysmooth
-Eigen::VectorXd locpolysmooth(Eigen::VectorXd Lt, Eigen::VectorXd Ly, Eigen::VectorXd newt, std::string kernel, const double bw, const double k, const int deg);
-RcppExport SEXP _robfpca_locpolysmooth(SEXP LtSEXP, SEXP LySEXP, SEXP newtSEXP, SEXP kernelSEXP, SEXP bwSEXP, SEXP kSEXP, SEXP degSEXP) {
+// locpolysmooth_cpp
+Eigen::VectorXd locpolysmooth_cpp(Eigen::VectorXd Lt, Eigen::VectorXd Ly, Eigen::VectorXd newt, std::string kernel, const double bw, const double k, const int deg, int maxit, const double tol);
+RcppExport SEXP _robfpca_locpolysmooth_cpp(SEXP LtSEXP, SEXP LySEXP, SEXP newtSEXP, SEXP kernelSEXP, SEXP bwSEXP, SEXP kSEXP, SEXP degSEXP, SEXP maxitSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -65,7 +65,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type bw(bwSEXP);
     Rcpp::traits::input_parameter< const double >::type k(kSEXP);
     Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
-    rcpp_result_gen = Rcpp::wrap(locpolysmooth(Lt, Ly, newt, kernel, bw, k, deg));
+    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< const double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(locpolysmooth_cpp(Lt, Ly, newt, kernel, bw, k, deg, maxit, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -257,7 +259,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_get_positive_elements", (DL_FUNC) &_robfpca_get_positive_elements, 3},
     {"_robfpca_IRLScpp", (DL_FUNC) &_robfpca_IRLScpp, 6},
     {"_robfpca_get_kernel_weight", (DL_FUNC) &_robfpca_get_kernel_weight, 2},
-    {"_robfpca_locpolysmooth", (DL_FUNC) &_robfpca_locpolysmooth, 7},
+    {"_robfpca_locpolysmooth_cpp", (DL_FUNC) &_robfpca_locpolysmooth_cpp, 9},
     {"_robfpca_order_", (DL_FUNC) &_robfpca_order_, 1},
     {"_robfpca_weighted_quantile_cpp", (DL_FUNC) &_robfpca_weighted_quantile_cpp, 3},
     {"_robfpca_weighted_quantile_top_cpp", (DL_FUNC) &_robfpca_weighted_quantile_top_cpp, 3},

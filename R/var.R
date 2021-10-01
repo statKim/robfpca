@@ -9,8 +9,16 @@
 #' @param newt a vector containing time points to estimate
 #' @param method "huber", "WRM" are supported
 #' @param mu \code{meanfunc.rob} object from \code{meanfunc.rob()}
-#' @param sig2 a noise variance estimator
-#' @param ... additional options of \code{meanfunc.rob()}
+#' @param sig2 a noise variance estimator obtained from \code{sigma2.rob()}
+#' @param kernel a kernel function for local polynomial smoothing ("epanechnikov", "gauss" are supported.)
+#' @param bw a bandwidth.
+#' @param delta If method == "Huber", it uses for $\\rho$ function in Huber loss.
+#' @param deg a numeric scalar of polynomial degrees for local polynomial smoothing
+#' @param cv If TRUE, K-fold cross-validation is performed.
+#' @param ncores a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.
+#' @param cv_bw_loss a loss function for K-fold cross-validation
+#' @param cv_K a number of folds for K-fold cross-validation
+#' @param ... additional options
 #'
 #' @return a \code{varfunc.rob} object contatining \code{sig2} which is a noise variance estimate and \code{obj} which is containing as follows:
 #' \item{t}{a vector containing unlist(Lt)}
@@ -23,6 +31,7 @@
 #' \item{deg}{a degree of polnomials}
 #' \item{domain}{a range of timepoints}
 #' \item{yend}{yend}
+#' \item{cv_obj}{an object of K-fold CV for bandwidth}
 #' \item{cv_optns}{a list containing options of K-fold cross-validation. (\code{K} = \code{cv_K}, \code{ncore} = \code{ncores}, \code{delta_loss} = \code{cv_delta_loss}, \code{bw_loss} = \code{cv_bw_loss})}
 #'
 #' @importFrom dplyr %>% group_by summarise
@@ -35,7 +44,14 @@ varfunc.rob <- function(Lt,
                         method = c("L2","Huber","WRM","Bisquare"),
                         mu = NULL,
                         sig2 = NULL,
-                        # weig=NULL,
+                        kernel = "epanechnikov",
+                        bw = NULL,
+                        delta = 1.345,
+                        deg = 1,
+                        cv = FALSE,
+                        ncores = 1,
+                        cv_bw_loss = "HUBER",
+                        cv_K = 5,
                         ...) {
 
     method <- toupper(method)
@@ -50,7 +66,16 @@ varfunc.rob <- function(Lt,
     }
 
     if (is.null(mu)) {
-        mu <- meanfunc.rob(Lt, Ly, method = method)
+        mu <- meanfunc.rob(Lt = Lt,
+                           Ly = Ly,
+                           newt = NULL,
+                           method = method,
+                           kernel = kernel,
+                           bw = bw,
+                           delta = delta,
+                           deg = deg,
+                           cv = FALSE)
+        # mu <- meanfunc.rob(Lt, Ly, method = method)
     }
 
     # calculate sum of squares
@@ -72,7 +97,20 @@ varfunc.rob <- function(Lt,
         sig2 <- sigma2.rob(Lt, Ly, h = h.sig2)
     }
 
-    R <- list(obj = meanfunc.rob(Lt, ss, method = method, ...),
+
+    R <- list(obj = meanfunc.rob(Lt = Lt,
+                                 Ly = ss,
+                                 newt = newt,
+                                 method = method,
+                                 kernel = kernel,
+                                 bw = bw,
+                                 delta = delta,
+                                 deg = deg,
+                                 cv = cv,
+                                 ncores = ncores,
+                                 cv_bw_loss = cv_bw_loss,
+                                 cv_K = cv_K,
+                                 ...),
               sig2 = sig2)
     class(R) <- 'varfunc.rob'
 

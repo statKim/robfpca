@@ -80,7 +80,7 @@ Rcpp::List get_positive_elements(Eigen::VectorXd Y,
 Rcpp::List IRLScpp(const Eigen::VectorXd Y,
                    const Eigen::MatrixXd X,
                    Rcpp::Nullable<Rcpp::NumericVector> weight_ = R_NilValue,
-                   const int maxit = 30,
+                   const int maxit = 50,
                    const double tol = 0.0001,
                    const double k = 1.345) {
   int n = Y.size();   // number of observations (unlist(Lt))
@@ -194,14 +194,18 @@ Eigen::VectorXd get_kernel_weight(Eigen::VectorXd tmp,
 // - bw : bandwidth
 // - k : delta for Huber function (or Tukey's biweight function)
 // - deg : degree of polynomial
+// - maxit : maximum iteration for IRLS algorithm
+// - tol : tolerance rate for stop iterations
 // [[Rcpp::export]]
-Eigen::VectorXd locpolysmooth(Eigen::VectorXd Lt,
-                              Eigen::VectorXd Ly,
-                              Eigen::VectorXd newt,
-                              std::string kernel = "epanechnikov",
-                              const double bw = 0.1,
-                              const double k = 1.345,
-                              const int deg = 1) {
+Eigen::VectorXd locpolysmooth_cpp(Eigen::VectorXd Lt,
+                                  Eigen::VectorXd Ly,
+                                  Eigen::VectorXd newt,
+                                  std::string kernel = "epanechnikov",
+                                  const double bw = 0.1,
+                                  const double k = 1.345,
+                                  const int deg = 1,
+                                  int maxit = 50,
+                                  const double tol = 0.0001) {
   int n_newt = newt.size();   // number of grid which is predicted
   int n = Lt.size();   // number of Lt
   double weig = 1. / n;   // 1/length(Lt)
@@ -244,7 +248,7 @@ Eigen::VectorXd locpolysmooth(Eigen::VectorXd Lt,
     // Rcpp::Rcout << n << "\t" << W.size() << "\t" << kern.size() << "\n";
 
     // Huber regression
-    Rcpp::List fit = IRLScpp(Y_sub, X_sub, W, 30, 0.0001, k);
+    Rcpp::List fit = IRLScpp(Y_sub, X_sub, W, maxit, tol, k);
     beta_hat = fit["beta"];
     mu_hat(t) = beta_hat(0);
   }

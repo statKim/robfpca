@@ -11,6 +11,14 @@ varfunc.rob(
   method = c("L2", "Huber", "WRM", "Bisquare"),
   mu = NULL,
   sig2 = NULL,
+  kernel = "epanechnikov",
+  bw = NULL,
+  delta = 1.345,
+  deg = 1,
+  cv = FALSE,
+  ncores = 1,
+  cv_bw_loss = "HUBER",
+  cv_K = 5,
   ...
 )
 }
@@ -25,9 +33,25 @@ varfunc.rob(
 
 \item{mu}{\code{meanfunc.rob} object from \code{meanfunc.rob()}}
 
-\item{sig2}{a noise variance estimator}
+\item{sig2}{a noise variance estimator obtained from \code{sigma2.rob()}}
 
-\item{...}{additional options of \code{meanfunc.rob()}}
+\item{kernel}{a kernel function for local polynomial smoothing ("epanechnikov", "gauss" are supported.)}
+
+\item{bw}{a bandwidth.}
+
+\item{delta}{If method == "Huber", it uses for $\\rho$ function in Huber loss.}
+
+\item{deg}{a numeric scalar of polynomial degrees for local polynomial smoothing}
+
+\item{cv}{If TRUE, K-fold cross-validation is performed.}
+
+\item{ncores}{a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.}
+
+\item{cv_bw_loss}{a loss function for K-fold cross-validation}
+
+\item{cv_K}{a number of folds for K-fold cross-validation}
+
+\item{...}{additional options}
 }
 \value{
 a \code{varfunc.rob} object contatining \code{sig2} which is a noise variance estimate and \code{obj} which is containing as follows:
@@ -41,6 +65,7 @@ a \code{varfunc.rob} object contatining \code{sig2} which is a noise variance es
 \item{deg}{a degree of polnomials}
 \item{domain}{a range of timepoints}
 \item{yend}{yend}
+\item{cv_obj}{an object of K-fold CV for bandwidth}
 \item{cv_optns}{a list containing options of K-fold cross-validation. (\code{K} = \code{cv_K}, \code{ncore} = \code{ncores}, \code{delta_loss} = \code{cv_delta_loss}, \code{bw_loss} = \code{cv_bw_loss})}
 }
 \description{

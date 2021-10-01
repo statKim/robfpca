@@ -10,12 +10,10 @@
 #' @param method "huber", "WRM" are supported
 #' @param kernel a kernel function for kernel smoothing ("epanechnikov", "gauss" are supported.)
 #' @param bw a bandwidth.
-#' If bw = NULL, it is selected from K-fold cross-validation.
 #' @param delta If method == "Huber", it uses for $\\rho$ function in Huber loss.
-#' If delta = NULL, it is selected from K-fold cross-validation.
 #' @param deg a numeric scalar of polynomial degrees for the kernel smoother
+#' @param cv If TRUE, K-fold cross-validation is performed.
 #' @param ncores a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.
-#' @param cv_delta_loss a loss function for K-fold cross-validation for delta in Huber function
 #' @param cv_bw_loss a loss function for K-fold cross-validation for bandwidth
 #' @param cv_K a number of folds for K-fold cross-validation
 #' @param ... additional options
@@ -31,6 +29,7 @@
 #' \item{deg}{a degree of polnomials}
 #' \item{domain}{a range of timepoints}
 #' \item{yend}{yend}
+#' \item{cv_obj}{an object of K-fold CV for bandwidth}
 #' \item{cv_optns}{a list containing options of K-fold cross-validation. (\code{K} = \code{cv_K}, \code{ncore} = \code{ncores}, \code{delta_loss} = \code{cv_delta_loss}, \code{bw_loss} = \code{cv_bw_loss})}
 #'
 #' @importFrom dplyr %>% group_by summarise
@@ -43,10 +42,11 @@ meanfunc.rob <- function(Lt,
                          method = c("L2","Huber","WRM","Bisquare"),
                          kernel = "epanechnikov",
                          bw = NULL,
-                         delta = NULL,
+                         delta = 1.345,
                          deg = 1,
+                         cv = FALSE,
                          ncores = 1,
-                         cv_delta_loss = "L1",
+                         # cv_delta_loss = "L1",
                          cv_bw_loss = "HUBER",
                          cv_K = 5,
                          ...) {
@@ -71,40 +71,39 @@ meanfunc.rob <- function(Lt,
     # kernel <- tolower(get.optional.param('kernel',others,'epanechnikov'))
     # bw <- get.optional.param('bw',others,NULL)
 
-    cv <- FALSE
-    # 5-fold CV for delta in Huber function
-    if ((method %in% c("HUBER","BISQUARE")) && is.null(delta)) {
-        print(paste0("delta is not specified. ", cv_K, "-fold CV is performed for delta in Huber function."))
-        delta_cv_obj <- delta.local_kern_smooth(Lt = Lt,
-                                                Ly = Ly,
-                                                method = method,
-                                                kernel = kernel,
-                                                deg = deg,
-                                                # delta = delta,
-                                                bw = bw,
-                                                cv_loss = cv_delta_loss,
-                                                K = cv_K,
-                                                ncores = ncores,
-                                                ...)
-        delta <- delta_cv_obj$selected_delta
-        cv <- TRUE
-    }
+    # cv <- FALSE
+    # # 5-fold CV for delta in Huber function
+    # if ((method %in% c("HUBER","BISQUARE")) && is.null(delta)) {
+    #     print(paste0("delta is not specified. ", cv_K, "-fold CV is performed for delta in Huber function."))
+    #     delta_cv_obj <- delta.locpolysmooth(Lt = Lt,
+    #                                         Ly = Ly,
+    #                                         method = method,
+    #                                         kernel = kernel,
+    #                                         deg = deg,
+    #                                         # delta = delta,
+    #                                         bw = bw,
+    #                                         cv_loss = cv_delta_loss,
+    #                                         K = cv_K,
+    #                                         ncores = ncores,
+    #                                         ...)
+    #     delta <- delta_cv_obj$selected_delta
+    #     cv <- TRUE
+    # }
 
     # 5-fold CV for bandwidth
-    if (is.null(bw)) {
-        print(paste0("bw is not specified. ", cv_K, "-fold CV is performed for bandwidth."))
-        bw_cv_obj <- bw.local_kern_smooth(Lt = Lt,
-                                          Ly = Ly,
-                                          method = method,
-                                          kernel = kernel,
-                                          deg = deg,
-                                          delta = delta,
-                                          cv_loss = cv_bw_loss,
-                                          K = cv_K,
-                                          ncores = ncores,
-                                          ...)
+    if (isTRUE(cv)) {
+        print(paste0(cv_K, "-fold CV is performed for bandwidth."))
+        bw_cv_obj <- bw.locpolysmooth(Lt = Lt,
+                                      Ly = Ly,
+                                      method = method,
+                                      kernel = kernel,
+                                      deg = deg,
+                                      delta = delta,
+                                      cv_loss = cv_bw_loss,
+                                      K = cv_K,
+                                      ncores = ncores,
+                                      ...)
         bw <- bw_cv_obj$selected_bw
-        cv <- TRUE
     }
 
     n <- length(Lt)
@@ -136,10 +135,10 @@ meanfunc.rob <- function(Lt,
     }
 
     if (cv == TRUE) {
-        # R$cv_optns <- cv_optns
+        R$cv_obj <- bw_cv_obj
         R$cv_optns <- list(K = cv_K,
                            ncores = ncores,
-                           delta_loss = cv_delta_loss,
+                           # delta_loss = cv_delta_loss,
                            bw_loss = cv_bw_loss)
     }
 
@@ -175,13 +174,13 @@ predict.meanfunc.rob <- function(object, newt, ...) {
 
         # print(meanfunc.obj$method)
 
-        tmp[ord] <- local_kern_smooth(Lt = meanfunc.obj$t,
-                                      Ly = meanfunc.obj$y,
-                                      newt = newt0[ord],
-                                      method = meanfunc.obj$method,
-                                      bw = meanfunc.obj$bw,
-                                      kernel = meanfunc.obj$kernel,
-                                      delta = meanfunc.obj$delta)
+        tmp[ord] <- locpolysmooth(Lt = meanfunc.obj$t,
+                                  Ly = meanfunc.obj$y,
+                                  newt = newt0[ord],
+                                  method = meanfunc.obj$method,
+                                  bw = meanfunc.obj$bw,
+                                  kernel = meanfunc.obj$kernel,
+                                  delta = meanfunc.obj$delta)
 
         yhat <- rep(0, length(newt))
         yhat[idx] <- tmp
