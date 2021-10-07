@@ -24,19 +24,34 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_psi
+Eigen::VectorXd get_psi(Eigen::VectorXd tmp, int n, double k, std::string method);
+RcppExport SEXP _robfpca_get_psi(SEXP tmpSEXP, SEXP nSEXP, SEXP kSEXP, SEXP methodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::VectorXd >::type tmp(tmpSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type k(kSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_psi(tmp, n, k, method));
+    return rcpp_result_gen;
+END_RCPP
+}
 // IRLScpp
-Rcpp::List IRLScpp(const Eigen::VectorXd Y, const Eigen::MatrixXd X, Rcpp::Nullable<Rcpp::NumericVector> weight_, const int maxit, const double tol, const double k);
-RcppExport SEXP _robfpca_IRLScpp(SEXP YSEXP, SEXP XSEXP, SEXP weight_SEXP, SEXP maxitSEXP, SEXP tolSEXP, SEXP kSEXP) {
+Rcpp::List IRLScpp(const Eigen::VectorXd Y, const Eigen::MatrixXd X, Rcpp::Nullable<Rcpp::NumericVector> weight_, std::string method, const int maxit, const double tol, const double k);
+RcppExport SEXP _robfpca_IRLScpp(SEXP YSEXP, SEXP XSEXP, SEXP weight_SEXP, SEXP methodSEXP, SEXP maxitSEXP, SEXP tolSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Eigen::VectorXd >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type X(XSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type weight_(weight_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
     Rcpp::traits::input_parameter< const int >::type maxit(maxitSEXP);
     Rcpp::traits::input_parameter< const double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< const double >::type k(kSEXP);
-    rcpp_result_gen = Rcpp::wrap(IRLScpp(Y, X, weight_, maxit, tol, k));
+    rcpp_result_gen = Rcpp::wrap(IRLScpp(Y, X, weight_, method, maxit, tol, k));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -53,21 +68,22 @@ BEGIN_RCPP
 END_RCPP
 }
 // locpolysmooth_cpp
-Eigen::VectorXd locpolysmooth_cpp(Eigen::VectorXd Lt, Eigen::VectorXd Ly, Eigen::VectorXd newt, std::string kernel, const double bw, const double k, const int deg, int maxit, const double tol);
-RcppExport SEXP _robfpca_locpolysmooth_cpp(SEXP LtSEXP, SEXP LySEXP, SEXP newtSEXP, SEXP kernelSEXP, SEXP bwSEXP, SEXP kSEXP, SEXP degSEXP, SEXP maxitSEXP, SEXP tolSEXP) {
+Eigen::VectorXd locpolysmooth_cpp(Eigen::VectorXd Lt, Eigen::VectorXd Ly, Eigen::VectorXd newt, std::string method, std::string kernel, const double bw, const double k, const int deg, int maxit, const double tol);
+RcppExport SEXP _robfpca_locpolysmooth_cpp(SEXP LtSEXP, SEXP LySEXP, SEXP newtSEXP, SEXP methodSEXP, SEXP kernelSEXP, SEXP bwSEXP, SEXP kSEXP, SEXP degSEXP, SEXP maxitSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::VectorXd >::type Lt(LtSEXP);
     Rcpp::traits::input_parameter< Eigen::VectorXd >::type Ly(LySEXP);
     Rcpp::traits::input_parameter< Eigen::VectorXd >::type newt(newtSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
     Rcpp::traits::input_parameter< std::string >::type kernel(kernelSEXP);
     Rcpp::traits::input_parameter< const double >::type bw(bwSEXP);
     Rcpp::traits::input_parameter< const double >::type k(kSEXP);
     Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
     Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
     Rcpp::traits::input_parameter< const double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(locpolysmooth_cpp(Lt, Ly, newt, kernel, bw, k, deg, maxit, tol));
+    rcpp_result_gen = Rcpp::wrap(locpolysmooth_cpp(Lt, Ly, newt, method, kernel, bw, k, deg, maxit, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -257,9 +273,10 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_get_positive_elements", (DL_FUNC) &_robfpca_get_positive_elements, 3},
-    {"_robfpca_IRLScpp", (DL_FUNC) &_robfpca_IRLScpp, 6},
+    {"_robfpca_get_psi", (DL_FUNC) &_robfpca_get_psi, 4},
+    {"_robfpca_IRLScpp", (DL_FUNC) &_robfpca_IRLScpp, 7},
     {"_robfpca_get_kernel_weight", (DL_FUNC) &_robfpca_get_kernel_weight, 2},
-    {"_robfpca_locpolysmooth_cpp", (DL_FUNC) &_robfpca_locpolysmooth_cpp, 9},
+    {"_robfpca_locpolysmooth_cpp", (DL_FUNC) &_robfpca_locpolysmooth_cpp, 10},
     {"_robfpca_order_", (DL_FUNC) &_robfpca_order_, 1},
     {"_robfpca_weighted_quantile_cpp", (DL_FUNC) &_robfpca_weighted_quantile_cpp, 3},
     {"_robfpca_weighted_quantile_top_cpp", (DL_FUNC) &_robfpca_weighted_quantile_top_cpp, 3},

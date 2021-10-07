@@ -8,14 +8,14 @@ covfunc.rob(
   Lt,
   Ly,
   newt = NULL,
-  method = c("Huber", "WRM", "Bisquare"),
+  method = c("huber", "bisquare"),
   mu = NULL,
   sig2x = NULL,
   sig2e = NULL,
   corf = NULL,
   kernel = "epanechnikov",
   bw = NULL,
-  delta = 1.345,
+  delta = NULL,
   deg = 1,
   cv = FALSE,
   ncores = 1,
@@ -45,7 +45,8 @@ covfunc.rob(
 
 \item{bw}{a bandwidth for local polynomial smoothing.}
 
-\item{delta}{If method == "Huber", it uses for $\\rho$ function in Huber loss.}
+\item{delta}{cut-off value for "huber"(Huber) or "bisquare"(Tukey's biweight function).
+Default is 1.345 for "huber" and 4.685 for "bisquare" for 95\% ARE.}
 
 \item{deg}{a numeric scalar of polynomial degrees for local polynomial smoothing}
 

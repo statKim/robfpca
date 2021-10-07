@@ -9,7 +9,7 @@ bw.locpolysmooth(
   Ly,
   method = "HUBER",
   kernel = "epanechnikov",
-  delta = 1.345,
+  delta = NULL,
   bw_cand = NULL,
   cv_loss = "HUBER",
   K = 5,
@@ -26,7 +26,8 @@ bw.locpolysmooth(
 
 \item{kernel}{a kernel function for kernel smoothing ("epan", "gauss" are supported.)}
 
-\item{delta}{cut-off value for Huber function}
+\item{delta}{cut-off value for "huber"(Huber) or "bisquare"(Tukey's biweight function).
+Default is 1.345 for "huber" and 4.685 for "bisquare" for 95\% ARE.}
 
 \item{bw_cand}{user defined bandwidth candidates for CV}
 

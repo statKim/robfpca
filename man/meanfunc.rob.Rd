@@ -8,10 +8,10 @@ meanfunc.rob(
   Lt,
   Ly,
   newt = NULL,
-  method = c("L2", "Huber", "WRM", "Bisquare"),
+  method = c("L2", "huber", "bisquare"),
   kernel = "epanechnikov",
   bw = NULL,
-  delta = 1.345,
+  delta = NULL,
   deg = 1,
   cv = FALSE,
   ncores = 1,
@@ -33,7 +33,8 @@ meanfunc.rob(
 
 \item{bw}{a bandwidth.}
 
-\item{delta}{If method == "Huber", it uses for $\\rho$ function in Huber loss.}
+\item{delta}{cut-off value for "huber"(Huber) or "bisquare"(Tukey's biweight function).
+Default is 1.345 for "huber" and 4.685 for "bisquare" for 95\% ARE.}
 
 \item{deg}{a numeric scalar of polynomial degrees for the kernel smoother}
 

@@ -14,7 +14,8 @@
 #' @param corf a correlation structure, it should be "function" class(x, y). Default is matern correlation.
 #' @param kernel a kernel function for local polynomial smoothing ("epanechnikov", "gauss" are supported.)
 #' @param bw a bandwidth for local polynomial smoothing.
-#' @param delta If method == "Huber", it uses for $\\rho$ function in Huber loss.
+#' @param delta cut-off value for "huber"(Huber) or "bisquare"(Tukey's biweight function).
+#' Default is 1.345 for "huber" and 4.685 for "bisquare" for 95\% ARE.
 #' @param deg a numeric scalar of polynomial degrees for local polynomial smoothing
 #' @param cv If TRUE, K-fold cross-validation is performed for bandwidth.
 #' @param ncores a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.
@@ -37,14 +38,14 @@
 covfunc.rob <- function(Lt,
                         Ly,
                         newt = NULL,
-                        method = c("Huber","WRM","Bisquare"),
+                        method = c("huber","bisquare"),
                         mu = NULL,
                         sig2x = NULL,
                         sig2e = NULL,
                         corf = NULL,
                         kernel = "epanechnikov",
                         bw = NULL,
-                        delta = 1.345,
+                        delta = NULL,
                         deg = 1,
                         cv = FALSE,
                         ncores = 1,
@@ -86,7 +87,7 @@ covfunc.rob <- function(Lt,
             return(mui)
         }
     })
-    mu.hat <- unlist(mu.hat)
+    # mu.hat <- unlist(mu.hat)
 
     # cat("Finish mean estimation! \n")
 
@@ -110,7 +111,7 @@ covfunc.rob <- function(Lt,
             return(vari)
         }
     })
-    var.hat <- unlist(var.hat)
+    # var.hat <- unlist(var.hat)
 
     # cat("Finish variance estimation! \n")
 
@@ -250,8 +251,7 @@ estimate.theta <- function(Lt,Ly,
                            h=0.1,
                            domain=c(0,1),
                            pfunc=NULL,
-                           theta0=NULL)
-{
+                           theta0=NULL) {
     if(is.null(weig))   weig <- rep(1,length(Lt))
     if(is.null(pfunc)) pfunc <- function(th){return(0)}
 
@@ -263,32 +263,51 @@ estimate.theta <- function(Lt,Ly,
     n <- length(Lt)
     result <- list()
 
-    if('LS' %in% method)
-    {
+    if ('LS' %in% method) {
         R <- sapply(1:n,function(i){
-            tobs <- Lt[[i]]
-            idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
-            yy <- Ly[[i]]
-            yy <- yy[idx]
-            mu <- mu.hat[[i]]
-            mu <- mu[idx]
-            resid <- yy-mu
+            # tobs <- Lt[[i]]
+            # idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
+            # yy <- Ly[[i]]
+            # yy <- yy[idx]
+            # mu <- mu.hat[[i]]
+            # mu <- mu[idx]
+            resid <- Ly[[i]] - mu.hat[[i]]
             return(list(cbind(resid) %*% rbind(resid)))
         })
 
-        TT <- sapply(1:n,function(i){
-            tobs <- Lt[[i]]
-            idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
-            tobs[idx]
-        })
+        TT <- Lt
 
         SS <- sapply(1:n,function(i){
-            tobs <- Lt[[i]]
-            idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
+            # tobs <- Lt[[i]]
+            # idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
             sig.t <- sig[[i]]
-            sig.t <- sig.t[idx]
+            # sig.t <- sig.t[idx]
             diag(sig.t)
         })
+        # R <- sapply(1:n,function(i){
+        #     tobs <- Lt[[i]]
+        #     idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
+        #     yy <- Ly[[i]]
+        #     yy <- yy[idx]
+        #     mu <- mu.hat[[i]]
+        #     mu <- mu[idx]
+        #     resid <- yy-mu
+        #     return(list(cbind(resid) %*% rbind(resid)))
+        # })
+        #
+        # TT <- sapply(1:n,function(i){
+        #     tobs <- Lt[[i]]
+        #     idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
+        #     tobs[idx]
+        # })
+        #
+        # SS <- sapply(1:n,function(i){
+        #     tobs <- Lt[[i]]
+        #     idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
+        #     sig.t <- sig[[i]]
+        #     sig.t <- sig.t[idx]
+        #     diag(sig.t)
+        # })
 
         Q <- function(theta){
             if(any(theta < theta.lb) || any(theta > theta.ub)) return(1e300)
@@ -334,79 +353,79 @@ estimate.theta <- function(Lt,Ly,
         result$Q <- Q(res$par)
     }
 
-    if('QMLE' %in% method)
-    {
-        R <- sapply(1:n,function(i){
-            tobs <- Lt[[i]]
-            idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
-            yy <- Ly[[i]]
-            yy <- yy[idx]
-            mu <- mu.hat[[i]]
-            mu <- mu[idx]
-            resid <- yy-mu
-            return(list(cbind(resid) %*% rbind(resid)))
-        })
-
-        TT <- sapply(1:n,function(i){
-            tobs <- Lt[[i]]
-            idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
-            tobs[idx]
-        })
-
-        SS <- sapply(1:n,function(i){
-            tobs <- Lt[[i]]
-            idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
-            sig.t <- sig[[i]]
-            sig.t <- sig.t[idx]
-            diag(1/sig.t)
-        })
-
-
-        # set up initial value for optimization
-        if(is.null(theta.lb)) theta.lb <- rep(-Inf,D)
-        if(is.null(theta.ub)) theta.ub <- rep(Inf,D)
-
-        Q <- function(theta){
-            if(any(theta < theta.lb) || any(theta > theta.ub)) return(1e300)
-            v <- sapply(1:n,function(i){
-                tobs <- TT[[i]]
-                m <- length(tobs)
-                rho.mat <- rho(theta,tobs,tobs)
-                if(any(is.infinite(rho.mat)) || any(is.nan(rho.mat)))
-                {
-                    theta
-                    tobs
-                }
-                if(pracma::cond(rho.mat) > 1e2)
-                {
-                    rho.inv <- pracma::inv(rho.mat+0.01*diag(rep(1,m)))
-                }
-                else rho.inv <- pracma::inv(rho.mat)
-                S <- SS[[i]]
-                resid <- (t(R[[i]]) %*% S %*% rho.inv %*% S %*% R[[i]])
-                resid <- resid + log(abs(det(rho.mat)))
-                return(resid/2)
-            })
-            rs <- sum(v*weig)
-            if(is.nan(rs) || is.infinite(rs))
-            {
-                rs <- 1e100
-            }
-            return(rs)
-        }
-
-
-        v <- sapply(1:D,function(d){
-            lb <- theta.lb[d]
-            ub <- theta.ub[d]
-            if(lb > -Inf && ub < Inf) return(stats::runif(1)*(ub-lb)+lb)
-            else if(lb > -Inf) return(stats::runif(1)+lb)
-            else if(ub < Inf) return(ub-stats::runif(1))
-            else return(stats::runif(1))
-        })
-        res <- stats::optim(v,Q,lower=theta.lb,upper=theta.ub,method='L-BFGS-B')
-        result$QMLE <- res$par
-    }
+    # if('QMLE' %in% method)
+    # {
+    #     R <- sapply(1:n,function(i){
+    #         tobs <- Lt[[i]]
+    #         idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
+    #         yy <- Ly[[i]]
+    #         yy <- yy[idx]
+    #         mu <- mu.hat[[i]]
+    #         mu <- mu[idx]
+    #         resid <- yy-mu
+    #         return(list(cbind(resid) %*% rbind(resid)))
+    #     })
+    #
+    #     TT <- sapply(1:n,function(i){
+    #         tobs <- Lt[[i]]
+    #         idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
+    #         tobs[idx]
+    #     })
+    #
+    #     SS <- sapply(1:n,function(i){
+    #         tobs <- Lt[[i]]
+    #         idx <- (tobs >= domain[1]+h) & (tobs <= domain[2]-h)
+    #         sig.t <- sig[[i]]
+    #         sig.t <- sig.t[idx]
+    #         diag(1/sig.t)
+    #     })
+    #
+    #
+    #     # set up initial value for optimization
+    #     if(is.null(theta.lb)) theta.lb <- rep(-Inf,D)
+    #     if(is.null(theta.ub)) theta.ub <- rep(Inf,D)
+    #
+    #     Q <- function(theta){
+    #         if(any(theta < theta.lb) || any(theta > theta.ub)) return(1e300)
+    #         v <- sapply(1:n,function(i){
+    #             tobs <- TT[[i]]
+    #             m <- length(tobs)
+    #             rho.mat <- rho(theta,tobs,tobs)
+    #             if(any(is.infinite(rho.mat)) || any(is.nan(rho.mat)))
+    #             {
+    #                 theta
+    #                 tobs
+    #             }
+    #             if(pracma::cond(rho.mat) > 1e2)
+    #             {
+    #                 rho.inv <- pracma::inv(rho.mat+0.01*diag(rep(1,m)))
+    #             }
+    #             else rho.inv <- pracma::inv(rho.mat)
+    #             S <- SS[[i]]
+    #             resid <- (t(R[[i]]) %*% S %*% rho.inv %*% S %*% R[[i]])
+    #             resid <- resid + log(abs(det(rho.mat)))
+    #             return(resid/2)
+    #         })
+    #         rs <- sum(v*weig)
+    #         if(is.nan(rs) || is.infinite(rs))
+    #         {
+    #             rs <- 1e100
+    #         }
+    #         return(rs)
+    #     }
+    #
+    #
+    #     v <- sapply(1:D,function(d){
+    #         lb <- theta.lb[d]
+    #         ub <- theta.ub[d]
+    #         if(lb > -Inf && ub < Inf) return(stats::runif(1)*(ub-lb)+lb)
+    #         else if(lb > -Inf) return(stats::runif(1)+lb)
+    #         else if(ub < Inf) return(ub-stats::runif(1))
+    #         else return(stats::runif(1))
+    #     })
+    #     res <- stats::optim(v,Q,lower=theta.lb,upper=theta.ub,method='L-BFGS-B')
+    #     result$QMLE <- res$par
+    # }
 
     return(result)
 }

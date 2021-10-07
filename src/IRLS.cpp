@@ -68,18 +68,57 @@ Rcpp::List get_positive_elements(Eigen::VectorXd Y,
 }
 
 
+// Get psi function of robust loss function
+// [[Rcpp::export]]
+Eigen::VectorXd get_psi(Eigen::VectorXd tmp,
+                        int n,
+                        double k,
+                        std::string method = "HUBER") {
+  Eigen::VectorXd psi(n);
+
+  if (method == "HUBER") {
+    // psi function of Huber loss
+    for (int j = 0; j < n; j++) {
+      if (abs(tmp(j)) >= k) {
+        if (tmp(j) < 0) {
+          psi(j) = -1 * k;
+        } else {
+          psi(j) = k;
+        }
+      } else {
+        psi(j) = tmp(j);
+      }
+    }
+  } else if (method == "BISQUARE") {
+    // psi function of Tukey's Biweight loss
+    for (int j = 0; j < n; j++) {
+      if (abs(tmp(j)) >= k) {
+        psi(j) = 0;
+      } else {
+        psi(j) = pow(1 - pow((tmp(j) / k), 2), 2)*tmp(j);
+      }
+    }
+  }
+
+  return psi;
+}
+
+
+
 // Iteratively re-weighted least squares (IRLS) for robust regression (M-estimation)
 // - Y : observed data (unlist(Ly))
 // - X : observed grid (unlist(Lt))
 // - weight_ : weight vector (Default = NULL)
+// - method : "HUBER" or "BISQUARE" are supported
 // - maxit : maximun iteration numbers
 // - weight : additional weight (for kernel regression)
 // - tol : tolerence rate
-// - k : delta for Huber function(or Tukey's biweight function)
+// - k : cut-off value for Huber or Tukey's biweight function
 // [[Rcpp::export]]
 Rcpp::List IRLScpp(const Eigen::VectorXd Y,
                    const Eigen::MatrixXd X,
                    Rcpp::Nullable<Rcpp::NumericVector> weight_ = R_NilValue,
+                   std::string method = "HUBER",
                    const int maxit = 50,
                    const double tol = 0.0001,
                    const double k = 1.345) {
@@ -128,18 +167,20 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
 
     tmp = (Y - Y_hat).array() / s;
 
-    // psi function of Huber loss
-    for (int j = 0; j < n; j++) {
-      if (abs(tmp(j)) >= k) {
-        if (tmp(j) < 0) {
-          psi(j) = -1 * k;
-        } else {
-          psi(j) = k;
-        }
-      } else {
-        psi(j) = tmp(j);
-      }
-    }
+    // // psi function of Huber loss
+    // for (int j = 0; j < n; j++) {
+    //   if (abs(tmp(j)) >= k) {
+    //     if (tmp(j) < 0) {
+    //       psi(j) = -1 * k;
+    //     } else {
+    //       psi(j) = k;
+    //     }
+    //   } else {
+    //     psi(j) = tmp(j);
+    //   }
+    // }
+    // psi function of robust loss function
+    psi = get_psi(tmp, n, k, "HUBER");
 
     // weight matrix for WLS
     w = (weight.array() * psi.array()).array() / (Y - Y_hat).array();
@@ -190,9 +231,10 @@ Eigen::VectorXd get_kernel_weight(Eigen::VectorXd tmp,
 // - Lt : a list of vectors or a vector containing time points for all curves
 // - Ly : a list of vectors or a vector containing observations for all curves
 // - newt : a vector containing time points to estimate
+// - method : "HUBER" or "BISQUARE" are supported
 // - kernel : a kernel function for kernel smoothing ("epan", "gauss" are supported.)
 // - bw : bandwidth
-// - k : delta for Huber function (or Tukey's biweight function)
+// - k : cut-off value for Huber or Tukey's biweight function
 // - deg : degree of polynomial
 // - maxit : maximum iteration for IRLS algorithm
 // - tol : tolerance rate for stop iterations
@@ -200,6 +242,7 @@ Eigen::VectorXd get_kernel_weight(Eigen::VectorXd tmp,
 Eigen::VectorXd locpolysmooth_cpp(Eigen::VectorXd Lt,
                                   Eigen::VectorXd Ly,
                                   Eigen::VectorXd newt,
+                                  std::string method = "HUBER",
                                   std::string kernel = "epanechnikov",
                                   const double bw = 0.1,
                                   const double k = 1.345,
@@ -247,8 +290,8 @@ Eigen::VectorXd locpolysmooth_cpp(Eigen::VectorXd Lt,
     // Rcpp::Rcout << W << "\n";
     // Rcpp::Rcout << n << "\t" << W.size() << "\t" << kern.size() << "\n";
 
-    // Huber regression
-    Rcpp::List fit = IRLScpp(Y_sub, X_sub, W, maxit, tol, k);
+    // M-type Robust regression
+    Rcpp::List fit = IRLScpp(Y_sub, X_sub, W, method, maxit, tol, k);
     beta_hat = fit["beta"];
     mu_hat(t) = beta_hat(0);
   }

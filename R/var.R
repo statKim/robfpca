@@ -12,7 +12,8 @@
 #' @param sig2 a noise variance estimator obtained from \code{sigma2.rob()}
 #' @param kernel a kernel function for local polynomial smoothing ("epanechnikov", "gauss" are supported.)
 #' @param bw a bandwidth.
-#' @param delta If method == "Huber", it uses for $\\rho$ function in Huber loss.
+#' @param delta cut-off value for "huber"(Huber) or "bisquare"(Tukey's biweight function).
+#' Default is 1.345 for "huber" and 4.685 for "bisquare" for 95\% ARE.
 #' @param deg a numeric scalar of polynomial degrees for local polynomial smoothing
 #' @param cv If TRUE, K-fold cross-validation is performed.
 #' @param ncores a number of cores to implement \code{foreach()} in \code{doParallel} for K-fold cross-validation.
@@ -41,12 +42,12 @@
 varfunc.rob <- function(Lt,
                         Ly,
                         newt = NULL,
-                        method = c("L2","Huber","WRM","Bisquare"),
+                        method = c("L2","huber","bisquare"),
                         mu = NULL,
                         sig2 = NULL,
                         kernel = "epanechnikov",
                         bw = NULL,
-                        delta = 1.345,
+                        delta = NULL,
                         deg = 1,
                         cv = FALSE,
                         ncores = 1,

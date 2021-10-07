@@ -8,7 +8,8 @@
 #' @param method "Huber" or "WRM" or "Bisquare"
 #' @param kernel a kernel function for kernel smoothing ("epan", "gauss" are supported.)
 #' @param bw bandwidth, default is (max(Lt)-min(Lt))/5.
-#' @param delta cut-off value for Huber function
+#' @param delta cut-off value for "huber"(Huber) or "bisquare"(Tukey's biweight function).
+#' Default is 1.345 for "huber" and 4.685 for "bisquare" for 95\% ARE.
 #' @param deg a degree of polynomial
 #' @param cv If TRUE, k-fold cross-validation is performed for bandwidth.
 #' @param ncores number of cores for k-fold cross-validation
@@ -23,7 +24,7 @@ locpolysmooth <- function(Lt,
                           method = c("L2","HUBER","WRM","BISQUARE"),
                           kernel = "epanechnikov",
                           bw = NULL,
-                          delta = 1.345,
+                          delta = NULL,
                           deg = 1,
                           cv = FALSE,
                           ncores = 1,
@@ -31,6 +32,15 @@ locpolysmooth <- function(Lt,
   method <- toupper(method)
   if (!(method %in% c("L2","HUBER","WRM","BISQUARE"))) {
     stop(paste0(method, " is not provided. Check method parameter."))
+  }
+
+  # Default value for delta
+  if (is.null(delta)) {
+    if (method == "HUBER") {
+      delta <- 1.345   # for 95% ARE
+    } else if (method == "BISQUARE") {
+      delta <- 4.685   # for 95% ARE
+    }
   }
 
   # Default bandwidth
@@ -67,6 +77,7 @@ locpolysmooth <- function(Lt,
     mu_hat <- locpolysmooth_cpp(Lt = Lt,
                                 Ly = Ly,
                                 newt = newt,
+                                method = method,
                                 kernel = kernel,
                                 bw = bw,
                                 k = delta,
@@ -133,7 +144,8 @@ locpolysmooth <- function(Lt,
 #' @param Ly a list of vectors containing observations for each curve
 #' @param method "Huber" or "WRM" or "Bisquare"
 #' @param kernel a kernel function for kernel smoothing ("epan", "gauss" are supported.)
-#' @param delta cut-off value for Huber function
+#' @param delta cut-off value for "huber"(Huber) or "bisquare"(Tukey's biweight function).
+#' Default is 1.345 for "huber" and 4.685 for "bisquare" for 95\% ARE.
 #' @param bw_cand user defined bandwidth candidates for CV
 #' @param cv_loss "Huber" or "L1" or "L2"
 #' @param K the number of folds
@@ -153,14 +165,14 @@ bw.locpolysmooth <- function(Lt,
                              Ly,
                              method = "HUBER",
                              kernel = "epanechnikov",
-                             delta = 1.345,
+                             delta = NULL,
                              bw_cand = NULL,
                              cv_loss = "HUBER",
                              K = 5,
                              ncores = 1,
                              ...) {
   cv_loss <- toupper(cv_loss)
-  if (!(cv_loss %in% c("HUBER","L1","L2"))) {
+  if (!(cv_loss %in% c("HUBER","L1","L2","BISQUARE"))) {
     stop(paste0(cv_loss, " is not provided. Check cv_loss parameter."))
   }
 
@@ -169,13 +181,15 @@ bw.locpolysmooth <- function(Lt,
   }
 
   if (is.null(bw_cand)) {
-    a <- min(unlist(Lt))
-    b <- max(unlist(Lt))
-    bw_cand <- 10^seq(-2, 0, length.out = 10) * (b - a)/3
-
-    if (kernel == "epanechnikov") {
-      bw_cand <- 10^seq(-1, 0, length.out = 10) * (b - a)/3
-    }
+    # a <- min(unlist(Lt))
+    # b <- max(unlist(Lt))
+    # bw_cand <- 10^seq(-2, 0, length.out = 10) * (b - a)/3
+    # if (kernel == "epanechnikov") {
+    #   bw_cand <- 10^seq(-1, 0, length.out = 10) * (b - a)/3
+    # }
+    domain <- range(unlist(Lt))   # range of timepoints
+    min_bw <- max(unlist(lapply(Lt, diff)))   # minimun candidate of bw
+    bw_cand <- seq(min_bw, diff(domain)/3, length.out = 10)
   }
 
   # get index for each folds
@@ -243,12 +257,18 @@ bw.locpolysmooth <- function(Lt,
       y <- unlist(Ly_test)
       if (cv_loss == "L2") {   # squared errors
         err <- sum((y - y_hat)^2)
+      } else if (cv_loss == "L1") {   # absolute errors
+        err <- sum(abs(y - y_hat))
       } else if (cv_loss == "HUBER") {   # Huber errors
+        delta <- 1.345   # approximately 95% ARE
         a <- abs(y - y_hat)
         err_huber <- ifelse(a > delta, delta*(a - delta/2), a^2/2)
         err <- sum(err_huber)
-      } else if (cv_loss == "L1") {   # absolute errors
-        err <- sum(abs(y - y_hat))
+      } else if (cv_loss == "BISQUARE") {   # Tukey's biweight
+        delta <- 4.685   # approximately 95% ARE
+        a <- 1 - (1 - ((y - y_hat)/delta)^2)^3
+        err <- ifelse(a > delta, delta^2/6, a*delta^2/6)
+        err <- sum(err)
       }
 
       return(err)
@@ -260,7 +280,8 @@ bw.locpolysmooth <- function(Lt,
       dplyr::group_by(bw_cand) %>%
       dplyr::summarise(cv_error = sum(cv_error))
 
-    bw <- list(selected_bw = cv_obj$bw_cand[ which.min(cv_obj$cv_error) ],
+    bw <- list(loss = cv_loss,
+               selected_bw = cv_obj$bw_cand[ which.min(cv_obj$cv_error) ],
                cv.error = as.data.frame(cv_obj))
   } else {
     cv_error <- rep(0, length(bw_cand))
@@ -296,17 +317,24 @@ bw.locpolysmooth <- function(Lt,
         y <- unlist(Ly_test)
         if (cv_loss == "L2") {
           cv_error[i] <- cv_error[i] + sum((y - y_hat)^2)   # squared errors
+        } else if (cv_loss == "L1") {   # absolute errors
+          cv_error[i] <- cv_error[i] + sum(abs(y - y_hat))
         } else if (cv_loss == "HUBER") {
+          delta <- 1.345   # approximately 95% ARE
           a <- abs(y - y_hat)
           err_huber <- ifelse(a > delta, delta*(a - delta/2), a^2/2)
           cv_error[i] <- cv_error[i] + sum(err_huber)
-        } else if (cv_loss == "L1") {   # absolute errors
-          cv_error[i] <- cv_error[i] + sum(abs(y - y_hat))
+        } else if (cv_loss == "BISQUARE") {   # Tukey's biweight
+          delta <- 4.685   # approximately 95% ARE
+          a <- 1 - (1 - ((y - y_hat)/delta)^2)^3
+          err <- ifelse(a > delta, delta^2/6, a*delta^2/6)
+          cv_error[i] <- cv_error[i] + sum(err)
         }
       }
     }
 
-    bw <- list(selected_bw = bw_cand[ which.min(cv_error) ],
+    bw <- list(loss = cv_loss,
+               selected_bw = bw_cand[ which.min(cv_error) ],
                cv.error = data.frame(bw = bw_cand,
                                      error = cv_error))
   }

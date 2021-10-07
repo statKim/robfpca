@@ -5,16 +5,20 @@ get_positive_elements <- function(Y, X, W) {
     .Call('_robfpca_get_positive_elements', PACKAGE = 'robfpca', Y, X, W)
 }
 
-IRLScpp <- function(Y, X, weight_ = NULL, maxit = 50L, tol = 0.0001, k = 1.345) {
-    .Call('_robfpca_IRLScpp', PACKAGE = 'robfpca', Y, X, weight_, maxit, tol, k)
+get_psi <- function(tmp, n, k, method = "HUBER") {
+    .Call('_robfpca_get_psi', PACKAGE = 'robfpca', tmp, n, k, method)
+}
+
+IRLScpp <- function(Y, X, weight_ = NULL, method = "HUBER", maxit = 50L, tol = 0.0001, k = 1.345) {
+    .Call('_robfpca_IRLScpp', PACKAGE = 'robfpca', Y, X, weight_, method, maxit, tol, k)
 }
 
 get_kernel_weight <- function(tmp, kernel = "epanechnikov") {
     .Call('_robfpca_get_kernel_weight', PACKAGE = 'robfpca', tmp, kernel)
 }
 
-locpolysmooth_cpp <- function(Lt, Ly, newt, kernel = "epanechnikov", bw = 0.1, k = 1.345, deg = 1L, maxit = 50L, tol = 0.0001) {
-    .Call('_robfpca_locpolysmooth_cpp', PACKAGE = 'robfpca', Lt, Ly, newt, kernel, bw, k, deg, maxit, tol)
+locpolysmooth_cpp <- function(Lt, Ly, newt, method = "HUBER", kernel = "epanechnikov", bw = 0.1, k = 1.345, deg = 1L, maxit = 50L, tol = 0.0001) {
+    .Call('_robfpca_locpolysmooth_cpp', PACKAGE = 'robfpca', Lt, Ly, newt, method, kernel, bw, k, deg, maxit, tol)
 }
 
 order_ <- function(x) {

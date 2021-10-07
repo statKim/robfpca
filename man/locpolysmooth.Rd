@@ -11,7 +11,7 @@ locpolysmooth(
   method = c("L2", "HUBER", "WRM", "BISQUARE"),
   kernel = "epanechnikov",
   bw = NULL,
-  delta = 1.345,
+  delta = NULL,
   deg = 1,
   cv = FALSE,
   ncores = 1,
@@ -31,7 +31,8 @@ locpolysmooth(
 
 \item{bw}{bandwidth, default is (max(Lt)-min(Lt))/5.}
 
-\item{delta}{cut-off value for Huber function}
+\item{delta}{cut-off value for "huber"(Huber) or "bisquare"(Tukey's biweight function).
+Default is 1.345 for "huber" and 4.685 for "bisquare" for 95\% ARE.}
 
 \item{deg}{a degree of polynomial}
 
