@@ -94,9 +94,20 @@ covfunc.rob <- function(Lt,
 
     ### Variance estimation
     if (is.null(sig2x)) {
-        # sig2x <- varfunc(Lt,Ly,mu=mu,sig2=sig2e)
-        sig2x <- varfunc.rob(Lt, Ly, mu = mu, sig2 = sig2e, kernel = kernel,
-                             method = method, ...)   # Huber option
+        sig2x <- varfunc.rob(Lt = Lt,
+                             Ly = Ly,
+                             mu = mu,
+                             sig2 = sig2e,
+                             newt = NULL,
+                             method = method,
+                             kernel = kernel,
+                             bw = bw,
+                             delta = delta,
+                             deg = deg,
+                             cv = cv,
+                             ncores = ncores,
+                             cv_bw_loss = cv_bw_loss,
+                             cv_K = cv_K)
     }
     sig2e <- sig2x$sig2   # noise variance
 
