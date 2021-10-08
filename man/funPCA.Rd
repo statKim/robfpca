@@ -4,7 +4,7 @@
 \alias{funPCA}
 \title{Functional Principal Component Analysis (FPCA) via Conditional Expectation}
 \usage{
-funPCA(Lt, Ly, mu, cov, sig2 = NULL, work.grid, K = NULL, PVE = 0.99)
+funPCA(Lt, Ly, mu, cov, sig2 = 0, work.grid = NULL, K = NULL, PVE = 0.99)
 }
 \arguments{
 \item{Lt}{a list of vectors or a vector containing time points for all curves}

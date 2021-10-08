@@ -18,11 +18,18 @@ funPCA <- function(Lt,
                    Ly,
                    mu,
                    cov,
-                   sig2 = NULL,
-                   work.grid,
+                   sig2 = 0,
+                   work.grid = NULL,
                    K = NULL,
                    PVE = 0.99) {
     n <- length(Lt)   # number of observations
+
+    # grid for numerical integration
+    if (is.null(work.grid)) {
+        time.range <- range(unlist(Lt))
+        work.grid <- seq(time.range[1], time.range[2],
+                         length.out = nrow(cov))
+    }
 
     # eigen analysis
     eig.obj <- get_eigen(cov, work.grid)
@@ -30,10 +37,10 @@ funPCA <- function(Lt,
     # fitted covariance which is transformed to positive semi-definite
     cov <- eig.obj$cov_psd
 
-    # noise variance
-    if (is.null(sig2)) {
-        sig2 <- 0
-    }
+    # # noise variance
+    # if (is.null(sig2)) {
+    #     sig2 <- 0
+    # }
 
     # number of PCs
     if (is.null(K)){
