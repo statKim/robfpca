@@ -51,13 +51,18 @@ varfunc.rob <- function(Lt,
                         deg = 1,
                         cv = FALSE,
                         ncores = 1,
-                        cv_bw_loss = "HUBER",
+                        cv_bw_loss = NULL,
                         cv_K = 5,
                         ...) {
 
     method <- toupper(method)
     if (!(method %in% c("L2","HUBER","WRM","BISQUARE"))) {
         stop(paste0(method, " is not provided. Check method parameter."))
+    }
+
+    # Use the same loss function to compute cross-validation error
+    if (is.null(cv_bw_loss)) {
+        cv_bw_loss <- method
     }
 
     n <- length(Lt)

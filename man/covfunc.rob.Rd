@@ -19,7 +19,7 @@ covfunc.rob(
   deg = 1,
   cv = FALSE,
   ncores = 1,
-  cv_bw_loss = "HUBER",
+  cv_bw_loss = NULL,
   cv_K = 5,
   ...
 )

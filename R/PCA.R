@@ -44,7 +44,7 @@ funPCA <- function(Lt,
 
     # number of PCs
     if (is.null(K)){
-        K <- which(eig.obj$PVE > PVE)[1]
+        K <- which(eig.obj$PVE >= PVE)[1]
         PVE <- eig.obj$PVE[K]   # PVE
     }
 

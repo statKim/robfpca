@@ -86,7 +86,7 @@ sigma2.rob <- function(t, y, h = NULL) {
 
 
 ### select optimal bandwidth
-select.sig2.rob.bw <- function(Lt, Ly, ss = NULL, mu = NULL) {
+select.sig2.rob.bw <- function(Lt, Ly, ss = NULL, mu = NULL, method) {
     n <- length(Lt)
 
     t.min <- min(unlist(Lt))
@@ -108,7 +108,7 @@ select.sig2.rob.bw <- function(Lt, Ly, ss = NULL, mu = NULL) {
 
         gr <- sort(unique(unlist(Lt)))
         if (is.null(mu)) {
-            mu <- meanfunc.rob(Lt, Ly, method = "huber", kernel = "epanechnikov",
+            mu <- meanfunc.rob(Lt, Ly, method = method, kernel = "epanechnikov",
                                bw = (t.max-t.min)/5, delta = 1.345)
         }
         mu_hat <- predict(mu, gr)
