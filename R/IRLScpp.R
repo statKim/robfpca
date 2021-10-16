@@ -260,12 +260,16 @@ bw.locpolysmooth <- function(Lt,
       } else if (cv_loss == "L1") {   # absolute errors
         err <- sum(abs(y - y_hat))
       } else if (cv_loss == "HUBER") {   # Huber errors
-        delta <- 1.345   # approximately 95% ARE
+        if (is.null(delta)) {
+          delta <- 1.345   # approximately 95% ARE
+        }
         a <- abs(y - y_hat)
         err_huber <- ifelse(a > delta, delta*(a - delta/2), a^2/2)
         err <- sum(err_huber)
       } else if (cv_loss == "BISQUARE") {   # Tukey's biweight
-        delta <- 4.685   # approximately 95% ARE
+        if (is.null(delta)) {
+          delta <- 4.685   # approximately 95% ARE
+        }
         a <- 1 - (1 - ((y - y_hat)/delta)^2)^3
         err <- ifelse(a > delta, delta^2/6, a*delta^2/6)
         err <- sum(err)
@@ -320,12 +324,16 @@ bw.locpolysmooth <- function(Lt,
         } else if (cv_loss == "L1") {   # absolute errors
           cv_error[i] <- cv_error[i] + sum(abs(y - y_hat))
         } else if (cv_loss == "HUBER") {
-          delta <- 1.345   # approximately 95% ARE
+          if (is.null(delta)) {
+            delta <- 1.345   # approximately 95% ARE
+          }
           a <- abs(y - y_hat)
           err_huber <- ifelse(a > delta, delta*(a - delta/2), a^2/2)
           cv_error[i] <- cv_error[i] + sum(err_huber)
         } else if (cv_loss == "BISQUARE") {   # Tukey's biweight
-          delta <- 4.685   # approximately 95% ARE
+          if (is.null(delta)) {
+            delta <- 4.685   # approximately 95% ARE
+          }
           a <- 1 - (1 - ((y - y_hat)/delta)^2)^3
           err <- ifelse(a > delta, delta^2/6, a*delta^2/6)
           cv_error[i] <- cv_error[i] + sum(err)

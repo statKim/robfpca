@@ -180,7 +180,7 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
     //   }
     // }
     // psi function of robust loss function
-    psi = get_psi(tmp, n, k, "HUBER");
+    psi = get_psi(tmp, n, k, method);
 
     // weight matrix for WLS
     w = (weight.array() * psi.array()).array() / (Y - Y_hat).array();

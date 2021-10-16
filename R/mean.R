@@ -97,7 +97,7 @@ meanfunc.rob <- function(Lt,
 
     # 5-fold CV for bandwidth
     if (isTRUE(cv)) {
-        print(paste0(cv_K, "-fold CV is performed for bandwidth."))
+        # cat(paste0(cv_K, "-fold CV is performed for bandwidth.\n"))
         bw_cv_obj <- bw.locpolysmooth(Lt = Lt,
                                       Ly = Ly,
                                       method = method,
