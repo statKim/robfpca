@@ -193,8 +193,12 @@ bw.locpolysmooth <- function(Lt,
   }
 
   # get index for each folds
+  Lt <- unlist(Lt)
+  Ly <- unlist(Ly)
   folds <- list()
-  n <- length(Lt)   # the number of curves
+  n <- length(Lt)   # the number of observations
+  # folds <- list()
+  # n <- length(Lt)   # the number of curves
   fold_num <- n %/% K   # the number of curves for each folds
   fold_sort <- sample(1:n, n)
   for (k in 1:K) {
@@ -270,8 +274,12 @@ bw.locpolysmooth <- function(Lt,
         if (is.null(delta)) {
           delta <- 4.685   # approximately 95% ARE
         }
-        a <- 1 - (1 - ((y - y_hat)/delta)^2)^3
-        err <- ifelse(a > delta, delta^2/6, a*delta^2/6)
+        a <- abs(y - y_hat)
+        err <- ifelse(a > delta,
+                      1,
+                      1 - (1 - ((y - y_hat)/delta)^2)^3)
+        # a <- 1 - (1 - ((y - y_hat)/delta)^2)^3
+        # err <- ifelse(a > delta, delta^2/6, a*delta^2/6)
         err <- sum(err)
       }
 
@@ -334,8 +342,12 @@ bw.locpolysmooth <- function(Lt,
           if (is.null(delta)) {
             delta <- 4.685   # approximately 95% ARE
           }
-          a <- 1 - (1 - ((y - y_hat)/delta)^2)^3
-          err <- ifelse(a > delta, delta^2/6, a*delta^2/6)
+          a <- abs(y - y_hat)
+          err <- ifelse(a > delta,
+                        1,
+                        1 - (1 - ((y - y_hat)/delta)^2)^3)
+          # a <- 1 - (1 - ((y - y_hat)/delta)^2)^3
+          # err <- ifelse(a > delta, delta^2/6, a*delta^2/6)
           cv_error[i] <- cv_error[i] + sum(err)
         }
       }
