@@ -88,6 +88,7 @@ Eigen::VectorXd get_psi(Eigen::VectorXd tmp,
       } else {
         psi(j) = tmp(j);
       }
+      psi(j) = 2*psi(j);   // exact derivative
     }
   } else if (method == "BISQUARE") {
     // psi function of Tukey's Biweight loss
@@ -97,6 +98,7 @@ Eigen::VectorXd get_psi(Eigen::VectorXd tmp,
       } else {
         psi(j) = pow(1 - pow((tmp(j) / k), 2), 2)*tmp(j);
       }
+      psi(j) = 6*psi(j) / pow(k, 2);   // exact derivative
     }
   }
 
@@ -130,6 +132,7 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
   Eigen::LDLT<Eigen::MatrixXd> ldlt_XTX(X.transpose() * X);
   beta.row(0) = ldlt_XTX.solve(X.transpose() * Y);   // LSE estimator
 
+  // initial scale estimator
   Eigen::VectorXd Y_hat(n);   // Y_hat
   Eigen::VectorXd beta_hat(X.cols());   // beta_hat
   beta_hat = beta.row(0);
@@ -157,28 +160,16 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
 
   // iterate until beta converged
   for (int i = 0; i < maxit; i++) {
-    beta_hat = beta.row(i);
-    Y_hat = X * beta_hat;
+    // beta_hat = beta.row(i);
+    // Y_hat = X * beta_hat;
 
-    // update scale estimator
-    resid = Rcpp::wrap(Y - Y_hat);
-    resid_med = abs(resid - median(resid));
-    s = median(resid_med) * 1.4826;  // re-scaled MAD by MAD*1.4826
+    // // update scale estimator
+    // resid = Rcpp::wrap(Y - Y_hat);
+    // resid_med = abs(resid - median(resid));
+    // s = median(resid_med) * 1.4826;  // re-scaled MAD by MAD*1.4826
 
     tmp = (Y - Y_hat).array() / s;
 
-    // // psi function of Huber loss
-    // for (int j = 0; j < n; j++) {
-    //   if (abs(tmp(j)) >= k) {
-    //     if (tmp(j) < 0) {
-    //       psi(j) = -1 * k;
-    //     } else {
-    //       psi(j) = k;
-    //     }
-    //   } else {
-    //     psi(j) = tmp(j);
-    //   }
-    // }
     // psi function of robust loss function
     psi = get_psi(tmp, n, k, method);
 
@@ -191,8 +182,12 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
     beta.row(i+1) = ldlt_XTWX.solve(X.transpose() * w.asDiagonal() * Y);
     beta_hat = beta.row(i+1);
 
-    // if beta converges before maxit, break.
-    if ((beta.row(i+1) - beta.row(i)).cwiseAbs().sum() < tol) {
+    // if beta converges before maxit, break. (See Marronna(2006) page 105)
+    Rcpp::NumericVector resid_before = resid;   // residuals of before iteration
+    Y_hat = X * beta_hat;
+    resid = Rcpp::wrap(Y - Y_hat);   // current residuals
+    if (max(abs(resid_before - resid))/s < tol) {
+    // if ((beta.row(i+1) - beta.row(i)).cwiseAbs().sum() < tol) {
       iter = i+1;
       break;
     }
