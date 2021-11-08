@@ -7,6 +7,7 @@
 
 // [[Rcpp::depends(RcppEigen)]]
 
+
 typedef Eigen::Map<Eigen::MatrixXd> MapMatd;
 typedef Eigen::Map<Eigen::VectorXd> MapVecd;
 
@@ -107,6 +108,75 @@ Eigen::VectorXd get_psi(Eigen::VectorXd tmp,
 
 
 
+// Get M-scale estimator using Bisquare
+// [[Rcpp::export]]
+double scale_M(Rcpp::NumericVector resid,
+               double s,
+               std::string method = "BISQUARE",
+               const int maxit = 50,
+               const double tol = 0.0001) {
+  int n = resid.size();
+  Rcpp::NumericVector W(n);
+  int iter;
+  Rcpp::NumericVector s_M(maxit);
+  s_M[0] = s;
+
+  if (method == "HUBER") {
+
+  } else if (method == "BISQUARE") {
+    double delta = 0.5;
+    double c = 1.56;
+    // iterate until scale M-estimator is converged
+    for (int i = 0; i < maxit; i++) {
+      iter = i+1;
+      // Weight using rho function of Tukey's Biweight with k = 1
+      Rcpp::NumericVector resid_s = resid / s_M[i];
+      Rcpp::NumericVector rho = pmin(1,
+                                     3*pow(resid_s/c, 2)-3*pow(resid_s/c, 4) + pow(resid_s/c, 6));
+      // W = pmin(1/pow(resid_s, 2),
+      //          3/pow(c, 2)-3*pow(resid_s, 2)/pow(c, 4) + pow(resid_s, 4)/pow(c, 6));
+      W = rho / pow(resid_s, 2);
+      // for (int j = 0; j < n; j++) {
+      //   // compute weight
+      //   if (resid_s(j) == 0) {
+      //     W[j] = 1;
+      //   } else {
+      //     // rho function of Tukey's Biweight loss
+      //     if (abs(resid_s(j)) > k) {
+      //       // rho(j) = 1;
+      //       rho = 1;
+      //     } else {
+      //       // rho(j) = 1 - pow(1 - pow((resid_s(j) / k), 2), 3);
+      //       rho = 1 - pow(1 - pow((resid_s(j) / k), 2), 3);
+      //     }
+      //     W[j] = rho / pow(resid_s(j), 2);
+      //   }
+      // }
+
+      s_M[i+1] = sqrt(mean(W * pow(resid, 2)) / delta);
+
+      // Check convergence
+      if ((iter > 2) & (abs(s_M[i+1]/s_M[i] - 1) < tol)) {
+        break;
+      }
+
+      // If fail to convege, return warning message.
+      if (iter == maxit) {
+        Rcpp::warning("M-scale is not converged.");
+        // Rcpp::Rcout << "Converge fail in the IRLS algorithm for maxit=" << maxit;
+      }
+    }
+  } else {
+    Rcpp::stop("Not supported option.");
+  }
+
+  // double s_M = sqrt(sum(W * pow(resid, 2)) / (n*delta));
+
+  return s_M[iter];
+}
+
+
+
 // Iteratively re-weighted least squares (IRLS) for robust regression (M-estimation)
 // - Y : observed data (unlist(Ly))
 // - X : observed grid (unlist(Lt))
@@ -136,10 +206,9 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
   Eigen::VectorXd Y_hat(n);   // Y_hat
   Eigen::VectorXd beta_hat(X.cols());   // beta_hat
   beta_hat = beta.row(0);
-  Y_hat = X * beta_hat;
-  // Y_hat = X * beta.row(0);
-  Rcpp::NumericVector resid = Rcpp::wrap(Y - Y_hat);
-  Rcpp::NumericVector resid_med = abs(resid - median(resid));
+  Y_hat = X * beta_hat;   // prediction
+  Rcpp::NumericVector resid = Rcpp::wrap(Y - Y_hat);   // residuals
+  Rcpp::NumericVector resid_med = abs(resid - median(resid));   // MAD
   double s = median(resid_med) * 1.4826;  // re-scaled MAD by MAD*1.4826
 
   // if weight is NULL, set 1
@@ -156,10 +225,11 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
   Eigen::VectorXd w(n);
   Eigen::MatrixXd XTWX(X.cols(), X.cols());   // X'WX
   Eigen::LDLT<Eigen::MatrixXd> ldlt_XTWX(XTWX);   // LDLT obj for X'WX
-  int iter = maxit;
+  int iter = 0;
 
   // iterate until beta converged
   for (int i = 0; i < maxit; i++) {
+    iter = i+1;
     // beta_hat = beta.row(i);
     // Y_hat = X * beta_hat;
 
@@ -176,19 +246,19 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
     // weight matrix for WLS
     w = (weight.array() * psi.array()).array() / (Y - Y_hat).array();
 
-    // WLS
+    // Weighted Least Squares using current estimates
     XTWX = X.transpose() * w.asDiagonal() * X;
     ldlt_XTWX.compute(XTWX);
     beta.row(i+1) = ldlt_XTWX.solve(X.transpose() * w.asDiagonal() * Y);
     beta_hat = beta.row(i+1);
 
-    // if beta converges before maxit, break. (See Marronna(2006) page 105)
+    // Check convergence (See Marronna(2006) page 105)
     Rcpp::NumericVector resid_before = resid;   // residuals of before iteration
     Y_hat = X * beta_hat;
     resid = Rcpp::wrap(Y - Y_hat);   // current residuals
-    if (max(abs(resid_before - resid))/s < tol) {
+    s = scale_M(resid, s, "BISQUARE");   // update M-scale estimator
+    if ((iter > 2) & (max(abs(resid_before - resid))/s < tol)) {
     // if ((beta.row(i+1) - beta.row(i)).cwiseAbs().sum() < tol) {
-      iter = i+1;
       break;
     }
 

@@ -9,6 +9,10 @@ get_psi <- function(tmp, n, k, method = "HUBER") {
     .Call('_robfpca_get_psi', PACKAGE = 'robfpca', tmp, n, k, method)
 }
 
+scale_M <- function(resid, s, method = "BISQUARE", maxit = 50L, tol = 0.0001) {
+    .Call('_robfpca_scale_M', PACKAGE = 'robfpca', resid, s, method, maxit, tol)
+}
+
 IRLScpp <- function(Y, X, weight_ = NULL, method = "HUBER", maxit = 50L, tol = 0.0001, k = 1.345) {
     .Call('_robfpca_IRLScpp', PACKAGE = 'robfpca', Y, X, weight_, method, maxit, tol, k)
 }

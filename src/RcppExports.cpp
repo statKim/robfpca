@@ -38,6 +38,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// scale_M
+double scale_M(Rcpp::NumericVector resid, double s, std::string method, const int maxit, const double tol);
+RcppExport SEXP _robfpca_scale_M(SEXP residSEXP, SEXP sSEXP, SEXP methodSEXP, SEXP maxitSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type resid(residSEXP);
+    Rcpp::traits::input_parameter< double >::type s(sSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< const int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< const double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(scale_M(resid, s, method, maxit, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // IRLScpp
 Rcpp::List IRLScpp(const Eigen::VectorXd Y, const Eigen::MatrixXd X, Rcpp::Nullable<Rcpp::NumericVector> weight_, std::string method, const int maxit, const double tol, const double k);
 RcppExport SEXP _robfpca_IRLScpp(SEXP YSEXP, SEXP XSEXP, SEXP weight_SEXP, SEXP methodSEXP, SEXP maxitSEXP, SEXP tolSEXP, SEXP kSEXP) {
@@ -274,6 +289,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_get_positive_elements", (DL_FUNC) &_robfpca_get_positive_elements, 3},
     {"_robfpca_get_psi", (DL_FUNC) &_robfpca_get_psi, 4},
+    {"_robfpca_scale_M", (DL_FUNC) &_robfpca_scale_M, 5},
     {"_robfpca_IRLScpp", (DL_FUNC) &_robfpca_IRLScpp, 7},
     {"_robfpca_get_kernel_weight", (DL_FUNC) &_robfpca_get_kernel_weight, 2},
     {"_robfpca_locpolysmooth_cpp", (DL_FUNC) &_robfpca_locpolysmooth_cpp, 10},
