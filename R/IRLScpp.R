@@ -188,7 +188,7 @@ bw.locpolysmooth <- function(Lt,
     #   bw_cand <- 10^seq(-1, 0, length.out = 10) * (b - a)/3
     # }
     domain <- range(unlist(Lt))   # range of timepoints
-    min_bw <- max(unlist(lapply(Lt, diff)))   # minimun candidate of bw
+    min_bw <- 2*max(unlist(lapply(Lt, diff)))   # minimun candidate of bw
     bw_cand <- seq(min_bw, diff(domain)/3, length.out = 10)
   }
 

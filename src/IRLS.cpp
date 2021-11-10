@@ -117,7 +117,7 @@ double scale_M(Rcpp::NumericVector resid,
                const double tol = 0.0001) {
   int n = resid.size();
   Rcpp::NumericVector W(n);
-  int iter;
+  int iter = 0;
   Rcpp::NumericVector s_M(maxit);
   s_M[0] = s;
 
@@ -128,11 +128,12 @@ double scale_M(Rcpp::NumericVector resid,
     double c = 1.56;
     // iterate until scale M-estimator is converged
     for (int i = 0; i < maxit; i++) {
-      iter = i+1;
+      iter = iter + 1;
       // Weight using rho function of Tukey's Biweight with k = 1
       Rcpp::NumericVector resid_s = resid / s_M[i];
+      resid_s = ifelse(resid_s == 0, 1, resid_s);   // if resid = 0, substitute to 1
       Rcpp::NumericVector rho = pmin(1,
-                                     3*pow(resid_s/c, 2)-3*pow(resid_s/c, 4) + pow(resid_s/c, 6));
+                                     3*pow(resid_s/c, 2) - 3*pow(resid_s/c, 4) + pow(resid_s/c, 6));
       // W = pmin(1/pow(resid_s, 2),
       //          3/pow(c, 2)-3*pow(resid_s, 2)/pow(c, 4) + pow(resid_s, 4)/pow(c, 6));
       W = rho / pow(resid_s, 2);
@@ -220,6 +221,7 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
   }
 
   // variables for iterations
+  Eigen::VectorXd resid2(n);
   Eigen::VectorXd tmp(n);
   Eigen::VectorXd psi(n);
   Eigen::VectorXd w(n);
@@ -229,22 +231,29 @@ Rcpp::List IRLScpp(const Eigen::VectorXd Y,
 
   // iterate until beta converged
   for (int i = 0; i < maxit; i++) {
-    iter = i+1;
-    // beta_hat = beta.row(i);
-    // Y_hat = X * beta_hat;
+    iter = iter + 1;
 
-    // // update scale estimator
-    // resid = Rcpp::wrap(Y - Y_hat);
-    // resid_med = abs(resid - median(resid));
-    // s = median(resid_med) * 1.4826;  // re-scaled MAD by MAD*1.4826
+    // transform Rcpp::NumericVector to Eigen::VectorXd
+    resid2 = Rcpp::as<Eigen::VectorXd>(resid);
+    tmp = resid2.array() / s;   // standardized residuals
 
-    tmp = (Y - Y_hat).array() / s;
-
-    // psi function of robust loss function
+    // Psi function of robust loss function
     psi = get_psi(tmp, n, k, method);
 
-    // weight matrix for WLS
-    w = (weight.array() * psi.array()).array() / (Y - Y_hat).array();
+    // Weight vector for WLS
+    // if residual = 0, we replace to arbitrary small value, 0.0001.
+    for (int j = 0; j < resid2.size(); j++) {
+      if (resid2(j) == 0) {
+        resid2(j) = 0.0001;
+      }
+    }
+    w = (weight.array() * psi.array()).array() / resid2.array();
+    // // Rcpp::NumericVector resid_sign_rcpp = sign(resid);
+    // // resid_sign = Rcpp::as<Eigen::VectorXd>(resid_sign_rcpp);
+    // resid_sign = resid2.array().sign();
+    // denom = resid2.cwiseAbs().cwiseMax(0.00000001);
+    // denom = resid_sign * denom;
+    // w = (weight.array() * psi.array()).array() / denom.array();
 
     // Weighted Least Squares using current estimates
     XTWX = X.transpose() * w.asDiagonal() * X;
