@@ -80,26 +80,26 @@ Eigen::VectorXd get_psi(Eigen::VectorXd tmp,
   if (method == "HUBER") {
     // psi function of Huber loss
     for (int j = 0; j < n; j++) {
-      if (abs(tmp(j)) >= k) {
+      if (abs(tmp(j)) > k) {
         if (tmp(j) < 0) {
-          psi(j) = -1 * k;
+          psi(j) = -1. * k;
         } else {
           psi(j) = k;
         }
       } else {
         psi(j) = tmp(j);
       }
-      psi(j) = 2*psi(j);   // exact derivative
+      psi(j) = 2.*psi(j);   // exact derivative
     }
   } else if (method == "BISQUARE") {
     // psi function of Tukey's Biweight loss
     for (int j = 0; j < n; j++) {
-      if (abs(tmp(j)) >= k) {
+      if (abs(tmp(j)) > k) {
         psi(j) = 0;
       } else {
-        psi(j) = pow(1 - pow((tmp(j) / k), 2), 2)*tmp(j);
+        psi(j) = pow(1. - pow((tmp(j) / k), 2), 2)*tmp(j);
       }
-      psi(j) = 6*psi(j) / pow(k, 2);   // exact derivative
+      psi(j) = 6.*psi(j) / pow(k, 2);   // exact derivative
     }
   }
 
@@ -131,9 +131,9 @@ double scale_M(Rcpp::NumericVector resid,
       iter = iter + 1;
       // Weight using rho function of Tukey's Biweight with k = 1
       Rcpp::NumericVector resid_s = resid / s_M[i];
-      resid_s = ifelse(resid_s == 0, 1, resid_s);   // if resid = 0, substitute to 1
-      Rcpp::NumericVector rho = pmin(1,
-                                     3*pow(resid_s/c, 2) - 3*pow(resid_s/c, 4) + pow(resid_s/c, 6));
+      resid_s = ifelse(resid_s == 0, 1., resid_s);   // if resid = 0, substitute to 1
+      Rcpp::NumericVector rho = pmin(1.,
+                                     3.*pow(resid_s/c, 2) - 3.*pow(resid_s/c, 4) + pow(resid_s/c, 6));
       // W = pmin(1/pow(resid_s, 2),
       //          3/pow(c, 2)-3*pow(resid_s, 2)/pow(c, 4) + pow(resid_s, 4)/pow(c, 6));
       W = rho / pow(resid_s, 2);
