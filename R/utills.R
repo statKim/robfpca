@@ -74,17 +74,16 @@ is.convex <- function(f_x, x) {
 #' Get design points
 #'
 #' @param Lt a list of vectors containing time points for each curve
+#' @param work.grid a vector containing sorted unique grids
 #'
 #' @return a matrix containing 2 columns (each row is a point which is a pair of observed timepoints)
 #'
 #' @export
-get_design_index <- function(Lt) {
-    obs_grid <- sort(unique(unlist(Lt)))
-    N <- length(obs_grid)   # length of unique grid points
+get_design_index <- function(Lt, work.grid) {
+    N <- length(work.grid)   # length of unique grid points
     design_mat <- matrix(0, N, N)
-
     for (t in Lt){
-        ind <- which(obs_grid %in% t)
+        ind <- which((work.grid <= max(t)) & (work.grid >= min(t)))
         design_mat[ind, ind] <- 1   # multiple indexing for matrix
     }
 
