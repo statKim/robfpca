@@ -28,6 +28,11 @@ Imports:
     foreach,
     pracma,
     refund,
-    fields
+    fields,
+    mvtnorm,
+    LaplacesDemon,
+    RobStatTM,
+    lqmm,
+    chemometrics
 Suggests: 
-    robfilter
+    GA

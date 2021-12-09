@@ -2,7 +2,7 @@
 % Please edit documentation in R/cov_Mest.R
 \name{cv.cov_Mest}
 \alias{cv.cov_Mest}
-\title{K-fold Cross-Validation for Bivariate Nadaraya-Watson smoothing for Covariance}
+\title{K-fold Cross-Validation for Bivariate Nadaraya-Watson smoothing for Covariance (Not proposed - Only for simulations)}
 \usage{
 cv.cov_Mest(x, bw_cand = NULL, K = 5, ncores = 1, noise.var = 0)
 }

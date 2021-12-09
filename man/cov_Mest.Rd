@@ -2,7 +2,7 @@
 % Please edit documentation in R/cov_Mest.R
 \name{cov_Mest}
 \alias{cov_Mest}
-\title{Marginal M-estimator for Covaraince function (covariance estimator)}
+\title{Marginal M-estimator for Covaraince function (Not proposed - Only for simulations)}
 \usage{
 cov_Mest(x, smooth = FALSE, bw = NULL, make.pos.semidef = TRUE, noise.var = 0)
 }

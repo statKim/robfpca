@@ -2,7 +2,7 @@
 ### Marginal M-estimator for partially observed functional data
 #################################################################
 
-#' Marignal M-estimator for Mean function (mean estimator)
+#' Marignal M-estimator for Mean function (Not proposed - Only for simulations)
 #'
 #' Obtain the marginal M-estimator for mean function.
 #'
@@ -25,7 +25,7 @@ mean_Mest <- function(x, smooth = FALSE) {
 }
 
 
-#' Marginal M-estimator for Covaraince function (covariance estimator)
+#' Marginal M-estimator for Covaraince function (Not proposed - Only for simulations)
 #'
 #' Obtain the marginal M-estimator for covariance function.
 #'
@@ -126,7 +126,7 @@ cov_Mest <- function(x,
 
 
 
-#' K-fold Cross-Validation for Bivariate Nadaraya-Watson smoothing for Covariance
+#' K-fold Cross-Validation for Bivariate Nadaraya-Watson smoothing for Covariance (Not proposed - Only for simulations)
 #'
 #' Perform K-fold cross-validation for Bivariate Nadaraya-Watson smoothing for Covariance.
 #'

@@ -2,7 +2,7 @@
 % Please edit documentation in R/cov_Mest.R
 \name{mean_Mest}
 \alias{mean_Mest}
-\title{Marignal M-estimator for Mean function (mean estimator)}
+\title{Marignal M-estimator for Mean function (Not proposed - Only for simulations)}
 \usage{
 mean_Mest(x, smooth = FALSE)
 }

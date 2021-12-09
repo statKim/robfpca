@@ -183,6 +183,8 @@ matrix2list <- function(X, grid = NULL) {
 #' @return a n x p matrix containing functional trajectories.
 #' n is the number of curves, and p is the number of timepoints.
 #'
+#' @importFrom dplyr %>%
+#'
 #' @export
 list2matrix <- function(X) {
     Lt <- X$Lt

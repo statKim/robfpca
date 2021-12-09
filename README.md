@@ -1,6 +1,6 @@
 # robfpca
 
-Robust principal component analysis for incomplete functional data
+Robust principal component analysis and its application for partially observed functional data
 
 ## Installation
 ```r
