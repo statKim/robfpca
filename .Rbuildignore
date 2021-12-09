@@ -3,3 +3,5 @@
 ^LICENSE\.md$
 ^Not_used$
 ^Simulation$
+^README\.Rmd$
+README_files

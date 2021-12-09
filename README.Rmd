@@ -1,14 +1,20 @@
+---
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(robfpca)
+```
 
 # Robust PCA for partially observed functional data
 
-This is the R package `robfpca` implementing the robust functional
-principal component analysis by using the robust mean and covariance
-function based on Orthogonalized Gnanadesikan-Kettenring (OGK)
-estimation.
+This is the R package `robfpca` implementing the robust functional principal component analysis by using the robust mean and covariance function based on Orthogonalized Gnanadesikan-Kettenring (OGK) estimation.
+
+
 
 ## Installation
-
-``` r
+```r
 # install.packages("devtools")
 devtools::install_github("statKim/robfpca")
 ```
@@ -16,11 +22,8 @@ devtools::install_github("statKim/robfpca")
 ## Example
 
 ### Generate partially observed functional data from Elliptical process
-
-First, we generate 100 partially observed curves with 20% of outlying
-curves.
-
-``` r
+First, we generate 100 partially observed curves with 20% of outlying curves.
+```{r}
 library(robfpca)
 
 # Generate partially observed curves with outliers
@@ -37,14 +40,10 @@ matplot(gr, t(X),
         xlab = "t", ylab = "X(t)")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
 ### Robust mean and covariance estimation via OGK estimation
-
-We estimate mean and covariance function using `cov_ogk()` function
-which implements OGK method via M-estimator.
-
-``` r
+We estimate mean and covariance function using `cov_ogk()` function which implements OGK method via M-estimator.
+```{r}
 # Robust mean and covariance functions
 cov.obj <- cov_ogk(X,
                    type = "huber",
@@ -56,8 +55,7 @@ noise.ogk.sm <- cov.obj$noise.var
 ```
 
 Following figures show the true and estimated covariance surfaces.
-
-``` r
+```{r, message=FALSE}
 # Covariance surfaces
 library(GA)
 par(mfrow = c(1, 2))
@@ -70,11 +68,9 @@ persp3D(gr, gr, cov.ogk.sm,
         theta = -70, phi = 30, expand = 1)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ### Functional principal component analysis
-
-``` r
+```{r}
 # Functional PCA
 pca.ogk.obj <- funPCA(Lt = x$Lt, 
                       Ly = x$Ly,
@@ -86,7 +82,7 @@ pca.ogk.obj <- funPCA(Lt = x$Lt,
                       K = 4)
 ```
 
-``` r
+```{r}
 # Plot 1~3 eigenfunctions
 eig.true <- get_delaigle_eigen(gr, model = 2)   # True eigenfunctions
 eig.ogk <- check_eigen_sign(pca.ogk.obj$eig.fun, 
@@ -110,16 +106,14 @@ for (i in 1:3) {
 }
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ### Completion and reconstruction for missing parts
-
-``` r
+```{r}
 # Curve reconstruction
 pred_ogk_mat <- predict(pca.ogk.obj, K = 4)
 ```
 
-``` r
+```{r}
 # apply(X, 1, function(y)(sum(is.na(y))))
 
 # Completion and reconstruction
@@ -141,4 +135,5 @@ lines(gr,
       col = 2)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+

@@ -47,11 +47,13 @@ sim_delaigle <- function(n = 100,
   if (dist == 'normal') {
     y <- mvtnorm::rmvnorm(n, rep(0, m), cov_sim)
   } else if (dist == 'tdist') {
+    out.prop <- 0
     y <- LaplacesDemon::rmvt(n = n,
                              mu = rep(0, m),
                              S = lqmm::make.positive.definite(cov_sim),
                              df = 3)
   } else if (dist == 'laplace') {
+    out.prop <- 0
     y <- LaplacesDemon::rmvl(n = n,
                              mu = rep(0, m),
                              Sigma = lqmm::make.positive.definite(cov_sim))

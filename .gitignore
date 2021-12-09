@@ -1,5 +1,11 @@
 .DS_Store
 
+### C/C++ ###
+*.o
+*.so
+*.dll
+
+
 ### R ###
 # History files
 .Rhistory

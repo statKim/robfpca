@@ -84,6 +84,7 @@ sim_kraus <- function(n = 100,
   m <- length(gr)   # legnth of observed grids
 
   if (dist == 'tdist') {
+    out.prop <- 0
     x.full <- simul.fd(n = n,
                        grid = gr,
                        lambda.cos = 3^(-(2*(1:num.comp)-1)),
