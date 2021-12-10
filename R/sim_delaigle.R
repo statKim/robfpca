@@ -14,17 +14,21 @@
 #' @param dist a distribution which the data is generated. "normal"(Normal distribution) and "tdist"(t-distribution) are supported. If dist = "tdist", the option of \code{out.prop} and \code{out.type} are ignored.
 #' @param noise a numeric value which is added random gaussian noises. Default is 0(No random noise).
 #'
-#' @return a n x 51 matrix with n observations per 51 timepoints
+#' @return a list contatining as follows:
+#' \item{Ly}{a list of n vectors containing the observed values for each individual.}
+#' \item{Lt}{a list of n vectors containing the observation time points for each individual corresponding to \code{Ly}}
+#' \item{out.ind}{a vector containing outlier index. 0 is non-outlier and 1 is the outlier.}
+#' \item{x.full}{a n x 51 dense matrix with n observations per 51 timepoints before making partially observed.}
 #'
 #' @examples
 #' set.seed(100)
-#' X <- sim_delaigle(n = 100,
-#'                   type = "partial",
-#'                   out.prop = 0.2,
-#'                   out.type = 1,
-#'                   dist = "normal")
-#' X <- list2matrix(X)
-#' matplot(t(X), type = "l")
+#' x.list <- sim_delaigle(n = 100,
+#'                        type = "partial",
+#'                        out.prop = 0.2,
+#'                        out.type = 1,
+#'                        dist = "normal")
+#' x <- list2matrix(x.list)
+#' matplot(t(x), type = "l")
 #'
 #' @references
 #' \cite{Delaigle, A., Hall, P., Huang, W., & Kneip, A. (2021). Estimating the covariance of fragmented and other related types of functional data. Journal of the American Statistical Association, 116(535), 1383-1401.}
@@ -36,9 +40,8 @@ sim_delaigle <- function(n = 100,
                          out.type = 1,
                          dist = "normal",
                          noise = 0) {
+
   gr <- seq(0, 1, length.out = 51)   # equispaced points
-  x <- list(Lt = list(),
-            Ly = list())
 
   # generate dense curves
   m <- length(gr)   # legnth of observed grids
@@ -47,13 +50,13 @@ sim_delaigle <- function(n = 100,
   if (dist == 'normal') {
     y <- mvtnorm::rmvnorm(n, rep(0, m), cov_sim)
   } else if (dist == 'tdist') {
-    out.prop <- 0
+    out.prop <- 0   # for heavy-tailed distrubution, we do not set outlier index
     y <- LaplacesDemon::rmvt(n = n,
                              mu = rep(0, m),
                              S = lqmm::make.positive.definite(cov_sim),
                              df = 3)
   } else if (dist == 'laplace') {
-    out.prop <- 0
+    out.prop <- 0   # for heavy-tailed distrubution, we do not set outlier index
     y <- LaplacesDemon::rmvl(n = n,
                              mu = rep(0, m),
                              Sigma = lqmm::make.positive.definite(cov_sim))
@@ -64,8 +67,10 @@ sim_delaigle <- function(n = 100,
     y <- y + matrix(stats::rnorm(n*m, 0, sqrt(noise)), n, m)
   }
 
+  x <- list()
   x$Ly <- lapply(1:n, function(i) { y[i, ] })
   x$Lt <- lapply(1:n, function(i) { gr })
+  x$out.ind <- rep(0, n)   # indicator of outlier
   x.full <- t(sapply(x$Ly, cbind))   # matrix containing the fully observed data
 
   # Check type option
@@ -77,11 +82,12 @@ sim_delaigle <- function(n = 100,
     x.obs <- rbind((gr <= .4) | (gr >= .7),
                    simul.obs(n = n-1, grid = gr)) # TRUE if observed
     # remove missing periods
-    x <- x.full
-    x[!x.obs] <- NA
+    x.partial <- x.full
+    x.partial[!x.obs] <- NA
 
-    x <- list(Ly = apply(x, 1, function(y){ y[!is.na(y)] }),
+    x <- list(Ly = apply(x.partial, 1, function(y){ y[!is.na(y)] }),
               Lt = apply(x.obs, 1, function(y){ gr[y] }),
+              out.ind = x$out.ind,
               x.full = x.full)
   } else if (type == "snippet") {   # generate functional snippets
     # Lin & Wang(2020) setting
@@ -107,6 +113,7 @@ sim_delaigle <- function(n = 100,
     }
     x <- list(Ly = Ly,
               Lt = Lt,
+              out.ind = x$out.ind,
               x.full = x.full)
   } else {
     stop(paste(type, "is not an appropriate argument of type"))
@@ -124,6 +131,7 @@ sim_delaigle <- function(n = 100,
                       Lt = x$Lt[(n-n.outlier+1):n])
     x.outlier <- make_outlier(x.outlier, out.type = out.type)
     x$Ly[(n-n.outlier+1):n] <- x.outlier$Ly
+    x$out.ind[(n-n.outlier+1):n] <- 1   # outlier indicator
     # x$Lt[(n-n.outlier+1):n] <- x.outlier$Lt
   } else {
     stop(paste(out.type, "is not correct value of argument out.type! Just integer value between 1~3."))

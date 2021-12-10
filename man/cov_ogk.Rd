@@ -44,13 +44,13 @@ The covariance function is obtained via OGK estimation using M-estimator of disp
 }
 \examples{
 set.seed(100)
-X <- sim_delaigle(n = 100,
-                  type = "partial",
-                  out.prop = 0.2,
-                  out.type = 1,
-                  dist = "normal")
-X <- list2matrix(X)
-cov.obj <- cov_ogk(X,
+x.list <- sim_delaigle(n = 100,
+                       type = "partial",
+                       out.prop = 0.2,
+                       out.type = 1,
+                       dist = "normal")
+x <- list2matrix(x.list)
+cov.obj <- cov_ogk(x,
                    type = "huber",
                    smooth = TRUE,
                    bw = 0.1)

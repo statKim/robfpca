@@ -30,21 +30,25 @@ sim_kraus(
 \item{noise}{a numeric value which is added random gaussian noises. Default is 0(No random noise).}
 }
 \value{
-a n x 51 matrix with n observations per 51 timepoints
+a list contatining as follows:
+\item{Ly}{a list of n vectors containing the observed values for each individual.}
+\item{Lt}{a list of n vectors containing the observation time points for each individual corresponding to \code{Ly}}
+\item{out.ind}{a vector containing outlier index. 0 is non-outlier and 1 is the outlier.}
+\item{x.full}{a n x 51 dense matrix with n observations per 51 timepoints before making partially observed.}
 }
 \description{
 Partially observed functional data is generated with 51 regular grids by using the setting of Kraus(2015).
 }
 \examples{
 set.seed(100)
-X <- sim_kraus(n = 100,
-               type = "partial",
-               num.comp = 5,
-               out.prop = 0.2,
-               out.type = 1,
-               dist = "normal")
-X <- list2matrix(X)
-matplot(t(X), type = "l")
+x.list <- sim_kraus(n = 100,
+                    type = "partial",
+                    num.comp = 5,
+                    out.prop = 0.2,
+                    out.type = 1,
+                    dist = "normal")
+x <- list2matrix(x.list)
+matplot(t(x), type = "l")
 
 }
 \references{

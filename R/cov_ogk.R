@@ -20,13 +20,13 @@
 #'
 #' @examples
 #' set.seed(100)
-#' X <- sim_delaigle(n = 100,
-#'                   type = "partial",
-#'                   out.prop = 0.2,
-#'                   out.type = 1,
-#'                   dist = "normal")
-#' X <- list2matrix(X)
-#' cov.obj <- cov_ogk(X,
+#' x.list <- sim_delaigle(n = 100,
+#'                        type = "partial",
+#'                        out.prop = 0.2,
+#'                        out.type = 1,
+#'                        dist = "normal")
+#' x <- list2matrix(x.list)
+#' cov.obj <- cov_ogk(x,
 #'                    type = "huber",
 #'                    smooth = TRUE,
 #'                    bw = 0.1)
@@ -400,23 +400,25 @@ cov_gk <- function(X,
 #'
 #' @examples
 #' set.seed(100)
-#' X <- sim_delaigle(n = 100,
-#'                   type = "partial",
-#'                   out.prop = 0.2,
-#'                   out.type = 1,
-#'                   dist = "normal")
-#' X <- list2matrix(X)
+#' x.list <- sim_delaigle(n = 100,
+#'                        type = "partial",
+#'                        out.prop = 0.2,
+#'                        out.type = 1,
+#'                        dist = "normal")
+#' x <- list2matrix(x.list)
 #'
 #' # 5-fold CV for bivariate smoothing
+#' # You can improve the computaion speed by setting "ncores" option.
 #' bw_cand = seq(0.01, 0.1, length.out = 10)
-#' cov.obj.cv <- cv.cov_ogk(X,
+#' cov.obj.cv <- cv.cov_ogk(x,
 #'                          type = 'huber',
 #'                          bw_cand = bw_cand,
-#'                          K = 5)
+#'                          K = 5,
+#'                          ncores = 1)
 #' print(cov.obj.cv$selected_bw)
 #'
 #' # Robust smoothed covariance using selected bw from cross-validation
-#' cov.obj <- cov_ogk(X,
+#' cov.obj <- cov_ogk(x,
 #'                    type = "huber",
 #'                    smooth = TRUE,
 #'                    bw = cov.obj.cv$selected_bw)

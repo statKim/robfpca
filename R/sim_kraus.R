@@ -54,18 +54,22 @@ get_kraus_eigen <- function(grid) {
 #' @param dist a distribution which the data is generated. "normal"(Normal distribution) and "tdist"(t-distribution) are supported. If dist = "tdist", the option of \code{out.prop} and \code{out.type} are ignored.
 #' @param noise a numeric value which is added random gaussian noises. Default is 0(No random noise).
 #'
-#' @return a n x 51 matrix with n observations per 51 timepoints
+#' @return a list contatining as follows:
+#' \item{Ly}{a list of n vectors containing the observed values for each individual.}
+#' \item{Lt}{a list of n vectors containing the observation time points for each individual corresponding to \code{Ly}}
+#' \item{out.ind}{a vector containing outlier index. 0 is non-outlier and 1 is the outlier.}
+#' \item{x.full}{a n x 51 dense matrix with n observations per 51 timepoints before making partially observed.}
 #'
 #' @examples
 #' set.seed(100)
-#' X <- sim_kraus(n = 100,
-#'                type = "partial",
-#'                num.comp = 5,
-#'                out.prop = 0.2,
-#'                out.type = 1,
-#'                dist = "normal")
-#' X <- list2matrix(X)
-#' matplot(t(X), type = "l")
+#' x.list <- sim_kraus(n = 100,
+#'                     type = "partial",
+#'                     num.comp = 5,
+#'                     out.prop = 0.2,
+#'                     out.type = 1,
+#'                     dist = "normal")
+#' x <- list2matrix(x.list)
+#' matplot(t(x), type = "l")
 #'
 #' @references
 #' \cite{Kraus, D. (2015). Components and completion of partially observed functional data. Journal of the Royal Statistical Society: Series B: Statistical Methodology, 777-801.}
@@ -84,7 +88,7 @@ sim_kraus <- function(n = 100,
   m <- length(gr)   # legnth of observed grids
 
   if (dist == 'tdist') {
-    out.prop <- 0
+    out.prop <- 0   # for heavy-tailed distrubution, we do not set outlier index
     x.full <- simul.fd(n = n,
                        grid = gr,
                        lambda.cos = 3^(-(2*(1:num.comp)-1)),
@@ -106,6 +110,7 @@ sim_kraus <- function(n = 100,
   x <- list()
   x$Ly <- lapply(1:n, function(i) { x.full[i, ] })
   x$Lt <- lapply(1:n, function(i) { gr })
+  x$out.ind <- rep(0, n)   # indicator of outlier
 
   # Check type option
   if (type == "dense") {   # Nothing do
@@ -116,11 +121,12 @@ sim_kraus <- function(n = 100,
     x.obs <- rbind((gr <= .4) | (gr >= .7),
                    simul.obs(n = n-1, grid = gr)) # TRUE if observed
     # remove missing periods
-    x <- x.full
-    x[!x.obs] <- NA
+    x.partial <- x.full
+    x.partial[!x.obs] <- NA
 
-    x <- list(Ly = apply(x, 1, function(y){ y[!is.na(y)] }),
+    x <- list(Ly = apply(x.partial, 1, function(y){ y[!is.na(y)] }),
               Lt = apply(x.obs, 1, function(y){ gr[y] }),
+              out.ind = x$out.ind,
               x.full = x.full)
 
   } else if (type == "snippet") {   # generate functional snippets
@@ -147,6 +153,7 @@ sim_kraus <- function(n = 100,
     }
     x <- list(Ly = Ly,
               Lt = Lt,
+              out.ind = x$out.ind,
               x.full = x.full)
   } else {
     stop(paste(type, "is not an appropriate argument of type"))
@@ -167,6 +174,7 @@ sim_kraus <- function(n = 100,
                                gr = gr,
                                num.comp = num.comp)
     x$Ly[(n-n.outlier+1):n] <- x.outlier$Ly
+    x$out.ind[(n-n.outlier+1):n] <- 1   # outlier indicator
     # x$Lt[(n-n.outlier+1):n] <- x.outlier$Lt
   } else {
     stop(paste(out.type, "is not correct value of argument out.type! Just integer value between 1~3."))
