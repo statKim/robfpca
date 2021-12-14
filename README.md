@@ -2,9 +2,12 @@
 # Robust PCA for partially observed functional data
 
 This is the R package `robfpca` implementing the robust functional
-principal component analysis by using the robust mean and covariance
-function based on Orthogonalized Gnanadesikan-Kettenring (OGK)
-estimation.
+principal component analysis (FPCA) for partially observed functional
+data.
+
+The proposed robust FPCA method implements FPCA based on the conditional
+expectation for the robust covariance function estimate from
+Orthogonalized Gnanadesikan-Kettenring (OGK) method.
 
 ## Installation
 
@@ -191,10 +194,10 @@ grid()
 
 ![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
-## Reproduced Simulation Results
+## Reproducible Simulation Results
 
-If you use `Simulation/simulation.R`, you can obtain reproduced results
-in our paper.
+If you use `Simulation/simulation.R`, you can obtain reproducible
+results in our paper.
 
 ## Reference
 
