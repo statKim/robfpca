@@ -1,8 +1,14 @@
 ###################################################
-### Simulation using Delaigle et al.(2021) setting
-### - 5-fold CV is performed for hyperparameters
+### Simulations on the paper
 ###################################################
+
+### Download required packages
+# devtools::install_github("statKim/robfpca")
+# devtools::install_github("statKim/mcfda.rob")
+
+### Load packages
 library(robfpca)   # proposed methods and data generating
+library(mcfda.rob)   # R-Kraus
 library(tidyverse)
 library(fdapace)
 library(doParallel)   # parallel computing
@@ -20,12 +26,6 @@ source("sim_utills/robust_Kraus.R")
 # devtools::install_github('msalibian/sparseFPCA', ref = "master")
 library(sparseFPCA)   # Boente (2021) 
 source("sim_utills/Boente_cov.R")
-
-
-### 아래는 function 수정해서 사용할 경우에만 load할 것
-# source("test/cov_ogk.R")
-# source("test/sim_delaigle.R")
-# source("test/sim_kraus.R")
 
 
 #####################################
@@ -123,7 +123,6 @@ num.sim <- 0   # number of simulations
 seed <- 0   # current seed
 sim.seed <- rep(NA, num_sim)   # collection of seed with no error occurs
 while (num.sim < num_sim) {
-  #seed =extreme_seed[num.sim+1]
   seed <- seed + 1
   set.seed(seed)
   print(paste0("Seed: ", seed))
@@ -255,9 +254,9 @@ while (num.sim < num_sim) {
   ### Kraus
   start_time <- Sys.time()
   tryCatch({
-    mean.kraus <- mean.missfd(x)
+    mu.kraus <- mean.missfd(x)
     cov.kraus <- var.missfd(x)
-    eig.kraus	<- eigen.missfd(cov.kraus)$vectors
+    # eig.kraus	<- eigen.missfd(cov.kraus)$vectors
   }, error = function(e) { 
     print("Kraus cov error")
     print(e)
@@ -281,7 +280,6 @@ while (num.sim < num_sim) {
   tryCatch({
     mu.Mest <- mean_Mest(x)	
     cov.Mest <- cov_Mest(x)
-    
   }, error = function(e) { 
     print("R-Kraus cov error")
     print(e)
@@ -363,13 +361,35 @@ while (num.sim < num_sim) {
                            mu.boente, cov.boente, sig2 = boente.noise.est, 
                            work.grid, PVE = pve, K = K)
   #  Kraus
-  pca.kraus.obj <- funPCA(x.2$Lt, x.2$Ly,
-                          mean.kraus, cov.kraus, sig2 = 0,
-                          work.grid, PVE = pve, K = K)
+  eig.kraus <- get_eigen(cov.kraus, work.grid)
+  if (!is_null(K)) {
+    K_kraus <- K
+    pve_kraus <- eig.kraus$PVE[K_kraus]
+  } else {
+    K_kraus <- which(eig.kraus$PVE > pve)[1]
+    pve_kraus <- eig.kraus$PVE[K_kraus]
+  }
+  pca.kraus.obj <- list(K = K_kraus,
+                        PVE = pve_kraus,
+                        mu = mu.kraus,
+                        cov = cov.kraus,
+                        lambda = eig.kraus$lambda,
+                        eig.fun = eig.kraus$phi)
   # Robust Kraus
-  pca.Mkraus.obj <- funPCA(x.2$Lt, x.2$Ly,
-                           mu.Mest, cov.Mest, sig2 = 0,
-                           work.grid, PVE = pve, K = K)
+  eig.Mkraus <- get_eigen(cov.Mest, work.grid)
+  if (!is_null(K)) {
+    K_Mkraus <- K
+    pve_Mkraus <- eig.Mkraus$PVE[K_Mkraus]
+  } else {
+    K_Mkraus <- which(eig.Mkraus$PVE > pve)[1]
+    pve_Mkraus <- eig.Mkraus$PVE[K_Mkraus]
+  }
+  pca.kraus.obj <- list(K = K_Mkraus,
+                        PVE = pve_Mkraus,
+                        mu = mu.Mest,
+                        cov = cov.Mest,
+                        lambda = eig.Mkraus$lambda,
+                        eig.fun = eig.Mkraus$phi)
   # OGK
   pca.ogk.obj <- funPCA(x.2$Lt, x.2$Ly, 
                         mu.ogk, cov.ogk, sig2 = 0,
