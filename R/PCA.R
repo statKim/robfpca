@@ -13,7 +13,6 @@
 #' @param PVE a proportion of variance explained
 #'
 #' @export
-#' @useDynLib robfpca
 funPCA <- function(Lt,
                    Ly,
                    mu,

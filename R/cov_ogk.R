@@ -44,7 +44,6 @@
 #' @import RobStatTM stats
 #'
 #' @export
-#' @useDynLib robfpca
 ### OGK covariance estimation
 # df : degrees of freedom for type = "tdist"
 cov_ogk <- function(X,
