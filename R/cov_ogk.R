@@ -169,7 +169,7 @@ cov_ogk <- function(X,
 
 ### Function kappa in equation (3.4)
 get_kappa <- function(v, m = 1.345) {
-  x <- ifelse(abs(v) <= m, v^2, 2*m*(abs(v - m/2)))
+  x <- ifelse(abs(v) <= m, v^2, 2*m*(abs(v) - m/2))
   return(x)
 }
 
