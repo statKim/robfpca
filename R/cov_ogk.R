@@ -390,6 +390,7 @@ cov_gk <- function(X,
 #'
 #' @param X  a n x p matrix with or without NA.
 #' @param type  the option for robust dispersion estimator. "huber", "bisquare", and "tdist" are supported.
+#' @param method the option for M-scale estimator in GK identity. Default is iterative algorithm using "RobStatTM" package. The closed form solution using method of moments can be used when \code{method == "MM"} and \code{type == "huber"}. (i.e. "MM" option is supported only when \code{type == "huber"}, now.)
 #' @param bw_cand  a vector contains the candidates of bandwidths for bivariate smoothing.
 #' @param K the number of folds for K-fold cross validation.
 #' @param ncores the number of cores on \code{foreach} for parallel computing.
@@ -441,6 +442,7 @@ cov_gk <- function(X,
 ### - It is conducted for element-wise covariance
 cv.cov_ogk <- function(X,
                        type = c("huber","bisquare","tdist"),
+                       method = "RobStatTM",
                        bw_cand = NULL,
                        K = 5,
                        ncores = 1) {
@@ -465,7 +467,8 @@ cv.cov_ogk <- function(X,
 
   # obtain the raw covariance (Not smoothed)
   cov_hat <- cov_ogk(X,
-                     type = "huber",
+                     type = type,
+                     method = method,
                      smooth = FALSE,
                      noise.var = FALSE,
                      reweight = FALSE)
