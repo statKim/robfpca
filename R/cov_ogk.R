@@ -6,6 +6,7 @@
 #'
 #' @param X  a n x p matrix with or without NA.
 #' @param type  the option for robust dispersion estimator. "huber", "bisquare", and "tdist" are supported.
+#' @param method the option for M-scale estimator in GK identity. Default is iterative algorithm using "RobStatTM" package. The closed form solution using method of moments can be used when \code{method == "MM"} and \code{type == "huber"}. (i.e. "MM" option is supported only when \code{type == "huber"}, now.)
 #' @param smooth If it is TRUE, bivariate Nadaraya-Watson smoothing is performed using \code{fields::smooth2d()}. Default is FALSE.
 #' @param bw a bandwidth when \code{smooth = TRUE}.
 #' @param noise.var If it is TRUE, we adjust the noise variance by using Yao et al.(2005). Default is FALSE.
@@ -48,9 +49,9 @@
 # df : degrees of freedom for type = "tdist"
 cov_ogk <- function(X,
                     type = c("huber","bisquare","tdist"),
+                    method = "RobStatTM",
                     smooth = FALSE,
                     bw = NULL,
-                    # psd = TRUE,
                     noise.var = FALSE,
                     df = 3,
                     reweight = FALSE,
@@ -60,6 +61,7 @@ cov_ogk <- function(X,
   # Step 2. correlation matrix
   obj.gk <- cov_gk(X,
                    type = type,
+                   method = method,
                    cor = TRUE,
                    smooth = FALSE,
                    psd = FALSE,
@@ -158,32 +160,6 @@ cov_ogk <- function(X,
     # rob.cov <- cov.sm.obj$Yhat
   }
 
-  # # make positive-semi-definite
-  # if (isTRUE(psd)) {
-  #   eig <- eigen(rob.cov)
-  #
-  #   # if complex eigenvalues exists, get the real parts only.
-  #   if (is.complex(eig$values)) {
-  #     idx <- which(abs(Im(eig$values)) < 1e-6)
-  #     eig$values <- Re(eig$values[idx])
-  #     eig$vectors <- Re(eig$vectors[, idx])
-  #   }
-  #
-  #   k <- which(eig$values > 0)
-  #   lambda <- eig$values[k]
-  #   phi <- matrix(eig$vectors[, k],
-  #                 ncol = length(k))
-  #
-  #   rob.cov <- phi %*% diag(lambda, ncol = length(k)) %*% t(phi)
-  #
-  #   rob.cov <- (rob.cov + t(rob.cov)) / 2
-  #   # if (length(k) > 1) {
-  #   #     rob.cov <- eig$vectors[, k] %*% diag(eig$values[k]) %*% t(eig$vectors[, k])
-  #   # } else {
-  #   #     rob.cov <- eig$values[k] * (eig$vectors[, k] %*% t(eig$vectors[, k]))
-  #   # }
-  # }
-
   return(list(mean = rob.mean,
               cov = rob.cov,
               noise.var = noise.var))
@@ -191,11 +167,24 @@ cov_ogk <- function(X,
 
 
 
+### Function kappa in equation (3.4)
+get_kappa <- function(v, m = 1.345) {
+  x <- ifelse(abs(v) <= m, v^2, 2*m*(abs(v - m/2)))
+  return(x)
+}
+
+### Huber-scale estimator using Method of moments (See eq (3.4))
+get_sigma2_rob <- function(v, m = 1.345) {
+  x <- get_kappa(v, m)
+  return( mean(x, na.rm = T) )
+}
+
 
 ### Gnanadesikan-Kettenring (GK) covariance estimation
 # df : degrees of freedom for type = "tdist"
 cov_gk <- function(X,
                    type = "huber",
+                   method = "RobStatTM",
                    cor = FALSE,
                    smooth = FALSE,
                    psd = TRUE,
@@ -247,13 +236,25 @@ cov_gk <- function(X,
             z2 <- X[, i] - X[, j]
           }
 
-          z1.disp <- locScaleM(z1[ind_not_NA],
-                               psi = type)$disper
-          if (sd(z2[ind_not_NA]) < 10^(-10)) {
-            z2.disp <- 0
+          if (method == "MM" & type == "huber") {
+            # Closed form of Huber scale estimator using Method of moments
+            # See eq (3.4) in our paper
+            z1.disp <- sqrt(get_sigma2_rob(z1))
+            if (sd(z2[ind_not_NA]) < 10^(-10)) {
+              z2.disp <- 0
+            } else {
+              z2.disp <- sqrt(get_sigma2_rob(z2))
+            }
           } else {
-            z2.disp <- locScaleM(z2[ind_not_NA],
+            # Default, using "RobStatTM" package
+            z1.disp <- locScaleM(z1[ind_not_NA],
                                  psi = type)$disper
+            if (sd(z2[ind_not_NA]) < 10^(-10)) {
+              z2.disp <- 0
+            } else {
+              z2.disp <- locScaleM(z2[ind_not_NA],
+                                   psi = type)$disper
+            }
           }
 
         } else if (type == "tdist") {   # MLE of t-distribution

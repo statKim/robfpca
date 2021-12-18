@@ -7,6 +7,7 @@
 cov_ogk(
   X,
   type = c("huber", "bisquare", "tdist"),
+  method = "RobStatTM",
   smooth = FALSE,
   bw = NULL,
   noise.var = FALSE,
@@ -19,6 +20,8 @@ cov_ogk(
 \item{X}{a n x p matrix with or without NA.}
 
 \item{type}{the option for robust dispersion estimator. "huber", "bisquare", and "tdist" are supported.}
+
+\item{method}{the option for M-scale estimator in GK identity. Default is iterative algorithm using "RobStatTM" package. The closed form solution using method of moments can be used when \code{method == "MM"} and \code{type == "huber"}. (i.e. "MM" option is supported only when \code{type == "huber"}, now.)}
 
 \item{smooth}{If it is TRUE, bivariate Nadaraya-Watson smoothing is performed using \code{fields::smooth2d()}. Default is FALSE.}
 
