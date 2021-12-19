@@ -224,12 +224,22 @@ cov_gk <- function(X,
 
         if (type %in% c("huber","bisquare")) {   # M-estimator of dispersion
           if (cor == TRUE) {
+            # # Scaling to obtain correlation matrix
+            # disp <- apply(X[, c(i,j)], 2, function(col){
+            #   locScaleM(col[ind_not_NA], psi = type)$disper
+            # })
+            # z1 <- X[, i]/disp[1] + X[, j]/disp[2]
+            # z2 <- X[, i]/disp[1] - X[, j]/disp[2]
+
             # Scaling to obtain correlation matrix
-            disp <- apply(X[, c(i,j)], 2, function(col){
-              locScaleM(col[ind_not_NA], psi = type)$disper
-            })
-            z1 <- X[, i]/disp[1] + X[, j]/disp[2]
-            z2 <- X[, i]/disp[1] - X[, j]/disp[2]
+            obj1 <- locScaleM(X[ind_not_NA, i], psi = type)
+            obj2 <- locScaleM(X[ind_not_NA, j], psi = type)
+            z1 <- (X[, i] - obj1$mu)/obj1$disper + (X[, j] - obj2$mu)/obj2$disper
+            z2 <- (X[, i] - obj1$mu)/obj1$disper - (X[, j] - obj2$mu)/obj2$disper
+
+            # # Scaling to obtain correlation matrix
+            # z1 <- (X[, i] - rob.mean[i])/rob.disp[i] + (X[, j] - rob.mean[j])/rob.disp[j]
+            # z2 <- (X[, i] - rob.mean[i])/rob.disp[i] - (X[, j] - rob.mean[j])/rob.disp[j]
           } else {
             # Not scaling
             z1 <- X[, i] + X[, j]
