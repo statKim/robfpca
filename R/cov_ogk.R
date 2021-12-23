@@ -6,7 +6,7 @@
 #'
 #' @param X  a n x p matrix with or without NA.
 #' @param type  the option for robust dispersion estimator. "huber", "bisquare", and "tdist" are supported.
-#' @param method the option for M-scale estimator in GK identity. Default is iterative algorithm using "RobStatTM" package. The closed form solution using method of moments can be used when \code{method == "MM"} and \code{type == "huber"}. (i.e. "MM" option is supported only when \code{type == "huber"}, now.)
+#' @param MM the option for M-scale estimator in GK identity. Default is same method using \code{type} which is iterative algorithm. The closed form solution using method of moments can be used when \code{MM == TRUE}.
 #' @param smooth If it is TRUE, bivariate Nadaraya-Watson smoothing is performed using \code{fields::smooth2d()}. Default is FALSE.
 #' @param bw a bandwidth when \code{smooth = TRUE}.
 #' @param noise.var If it is TRUE, we adjust the noise variance by using Yao et al.(2005). Default is FALSE.
@@ -49,7 +49,7 @@
 # df : degrees of freedom for type = "tdist"
 cov_ogk <- function(X,
                     type = c("huber","bisquare","tdist"),
-                    method = "RobStatTM",
+                    MM = FALSE,
                     smooth = FALSE,
                     bw = NULL,
                     noise.var = FALSE,
@@ -61,7 +61,7 @@ cov_ogk <- function(X,
   # Step 2. correlation matrix
   obj.gk <- cov_gk(X,
                    type = type,
-                   method = method,
+                   MM = MM,
                    cor = TRUE,
                    smooth = FALSE,
                    psd = FALSE,
@@ -168,14 +168,26 @@ cov_ogk <- function(X,
 
 
 ### Function kappa in equation (3.4)
-get_kappa <- function(v, m = 1.345) {
-  x <- ifelse(abs(v) <= m, v^2, 2*m*(abs(v) - m/2))
+get_kappa <- function(v) {
+  # x <- ifelse(abs(v) <= m, v^2, 2*m*(abs(v) - m/2))   # 2*huber loss
+
+  # 2*Hampel loss
+  # cut-off values are obtained from Sinova(2018)
+  v <- abs(v)
+  v2 <- v[!is.na(v)]
+  a <- median(v2)
+  b <- quantile(v2, 0.75)
+  c <- quantile(v2, 0.85)
+  x <- ifelse(v < a, v^2,
+              ifelse(v < b, 2*a*v - a^2,
+                     ifelse(v < c, a*(v-c)^2/(b-c) + a*(b+c-a), a*(b+c-a))))
+
   return(x)
 }
 
-### Huber-scale estimator using Method of moments (See eq (3.4))
-get_sigma2_rob <- function(v, m = 1.345) {
-  x <- get_kappa(v, m)
+### Robust loss - scale estimator using Method of moments (See eq (3.4))
+get_sigma2_rob <- function(v) {
+  x <- get_kappa(v)
   return( mean(x, na.rm = T) )
 }
 
@@ -184,7 +196,7 @@ get_sigma2_rob <- function(v, m = 1.345) {
 # df : degrees of freedom for type = "tdist"
 cov_gk <- function(X,
                    type = "huber",
-                   method = "RobStatTM",
+                   MM = FALSE,
                    cor = FALSE,
                    smooth = FALSE,
                    psd = TRUE,
@@ -246,8 +258,8 @@ cov_gk <- function(X,
             z2 <- X[, i] - X[, j]
           }
 
-          if (method == "MM" & type == "huber") {
-            # Closed form of Huber scale estimator using Method of moments
+          if (MM == TRUE) {
+            # Closed form of robust loss scale estimator using Method of moments
             # See eq (3.4) in our paper
             z1.disp <- sqrt(get_sigma2_rob(z1))
             if (sd(z2[ind_not_NA]) < 10^(-10)) {
@@ -283,16 +295,29 @@ cov_gk <- function(X,
             z2 <- X[, i] - X[, j]
           }
 
-          z1.disp <- MASS::fitdistr(z1[ind_not_NA],
-                                    densfun = "t",
-                                    df = df)$estimate[2]
-          if (sd(z2[ind_not_NA]) < 10^(-10)) {
-            z2.disp <- 0
+          if (MM == TRUE) {
+            # Closed form of robust loss scale estimator using Method of moments
+            # See eq (3.4) in our paper
+            z1.disp <- sqrt(get_sigma2_rob(z1))
+            if (sd(z2[ind_not_NA]) < 10^(-10)) {
+              z2.disp <- 0
+            } else {
+              z2.disp <- sqrt(get_sigma2_rob(z2))
+            }
           } else {
-            z2.disp <- MASS::fitdistr(z2[ind_not_NA],
+            # Default, using t-MLE
+            z1.disp <- MASS::fitdistr(z1[ind_not_NA],
                                       densfun = "t",
                                       df = df)$estimate[2]
+            if (sd(z2[ind_not_NA]) < 10^(-10)) {
+              z2.disp <- 0
+            } else {
+              z2.disp <- MASS::fitdistr(z2[ind_not_NA],
+                                        densfun = "t",
+                                        df = df)$estimate[2]
+            }
           }
+
 
         } else if (type == "trim") {   # Trimmed standard deviation
           if (cor == TRUE) {
@@ -400,7 +425,7 @@ cov_gk <- function(X,
 #'
 #' @param X  a n x p matrix with or without NA.
 #' @param type  the option for robust dispersion estimator. "huber", "bisquare", and "tdist" are supported.
-#' @param method the option for M-scale estimator in GK identity. Default is iterative algorithm using "RobStatTM" package. The closed form solution using method of moments can be used when \code{method == "MM"} and \code{type == "huber"}. (i.e. "MM" option is supported only when \code{type == "huber"}, now.)
+#' @param MM the option for M-scale estimator in GK identity. Default is same method using \code{type} which is iterative algorithm. The closed form solution using method of moments can be used when \code{MM == TRUE}.
 #' @param bw_cand  a vector contains the candidates of bandwidths for bivariate smoothing.
 #' @param K the number of folds for K-fold cross validation.
 #' @param ncores the number of cores on \code{foreach} for parallel computing.
@@ -452,7 +477,7 @@ cov_gk <- function(X,
 ### - It is conducted for element-wise covariance
 cv.cov_ogk <- function(X,
                        type = c("huber","bisquare","tdist"),
-                       method = "RobStatTM",
+                       MM = FALSE,
                        bw_cand = NULL,
                        K = 5,
                        ncores = 1) {
@@ -478,7 +503,7 @@ cv.cov_ogk <- function(X,
   # obtain the raw covariance (Not smoothed)
   cov_hat <- cov_ogk(X,
                      type = type,
-                     method = method,
+                     MM = MM,
                      smooth = FALSE,
                      noise.var = FALSE,
                      reweight = FALSE)
