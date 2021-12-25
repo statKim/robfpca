@@ -1,13 +1,15 @@
 
-# Robust PCA for partially observed functional data
+# Functional PCA for partially observed elliptical process
 
 This is the R package `robfpca` implementing the robust functional
 principal component analysis (FPCA) for partially observed functional
 data.
 
 The proposed robust FPCA method implements FPCA based on the conditional
-expectation for the robust covariance function estimate from
-Orthogonalized Gnanadesikan-Kettenring (OGK) method.
+expectation for the robust covariance function estimate. The robust
+covariance function is estimated using the modified
+Gnanadesikan-Kettenring (GK) identity based on M-estimator, and then
+orthogonalized.
 
 ## Installation
 
@@ -18,21 +20,19 @@ devtools::install_github("statKim/robfpca")
 
 ## Example
 
-### Generate partially observed functional data with contamination
+### Generate partially observed functional data from heavy-tailed distribution
 
-First, we generate 100 partially observed curves with 20% of outlying
-curves.
+First, we generate 100 partially observed curves from heavy-tailed
+*t*<sub>3</sub> distribution.
 
 ``` r
 library(robfpca)
 
-# Generate partially observed curves with outliers
-set.seed(1)
+# Generate partially observed curves from heavy-tailed distribution
+set.seed(46)
 x <- sim_delaigle(n = 100,
                   type = "partial",
-                  out.prop = 0.2,
-                  out.type = 1,
-                  dist = "normal")
+                  dist = "tdist")
 X <- list2matrix(x)   # transform list to matrix
 gr <- seq(0, 1, length.out = 51)   # observed timepoints
 matplot(gr, t(X), 
@@ -42,23 +42,29 @@ matplot(gr, t(X),
 
 ![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
-### Robust mean and covariance estimation via OGK estimation
+### Robust mean and covariance estimation
 
-We estimate mean and covariance function using `cov_ogk()` function
-which implements OGK method via M-estimator.
+We estimate the mean and covariance functions using `cov_ogk()` in this
+package which implements proposed method via M-estimator and equation
+(3.4) in our paper.
 
 ``` r
 # Robust mean and covariance functions
+set.seed(5)
 cov.obj <- cov_ogk(X,
                    type = "huber",
+                   MM = TRUE,
                    smooth = TRUE,
-                   bw = 0.1)
+                   bw = 0.3)
 mu.ogk <- cov.obj$mean
 cov.ogk <- cov.obj$cov
 noise.ogk <- cov.obj$noise.var
 ```
 
 ### Competing methods
+
+We consider the non-robust FPCA method for the incomplete functional
+data proposed by Yao et al. (2005).
 
 ``` r
 ### Yao et al. (2005)
@@ -74,23 +80,26 @@ cov.yao <- cov.yao.obj$cov
 noise.yao <- 0
 ```
 
-Following figures show the true and estimated covariance surfaces.
+Following figures show the true and estimated correlation surfaces.
 
 ``` r
-# Covariance surfaces
+# Correlation surfaces
 library(GA)
 par(mfrow = c(1, 3))
 cov.true <- get_delaigle_cov(gr, model = 2)   # True covariance function
-persp3D(gr, gr, cov.true,
-        xlab = "s", ylab = "t", zlab = "C(s,t)",
+persp3D(gr, gr, 
+        cov2cor(cov.true),
+        xlab = "s", ylab = "t",
         main = "True",
         theta = -70, phi = 30, expand = 1)
-persp3D(gr, gr, cov.yao,
-        xlab = "s", ylab = "t", zlab = "C(s,t)",
+persp3D(gr, gr, 
+        cov2cor(cov.yao),
+        xlab = "s", ylab = "t", 
         main = "Yao et al. (2005)",
         theta = -70, phi = 30, expand = 1)
-persp3D(gr, gr, cov.ogk,
-        xlab = "s", ylab = "t", zlab = "C(s,t)",
+persp3D(gr, gr, 
+        cov2cor(cov.ogk),
+        xlab = "s", ylab = "t",
         main = "Proposed",
         theta = -70, phi = 30, expand = 1)
 ```
@@ -98,6 +107,9 @@ persp3D(gr, gr, cov.ogk,
 ![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 ### Functional principal component analysis
+
+We perform FPCA based on the conditional expectation. (Yao et
+al. (2005))
 
 ``` r
 # Yao et al.(2005)
@@ -173,7 +185,7 @@ lines(gr[NA_ind],
       x$x.full[i, NA_ind],
       col = "darkgray", lty = 2, lwd = 2)
 grid()
-legend("topleft", 
+legend("bottomleft", 
        c("True","Yao et al.(2005)","Proposed"),
        lty = 1:3,
        col = 1:3)
@@ -201,4 +213,9 @@ results in our paper.
 
 ## Reference
 
-<!-- - H. Kim, Y. Park and Y. Lim (2022+). Robust principal component analysis and its applications for partially observed functional data, *Submitted*. -->
+-   Y. Park, H. Kim and Y. Lim (2022+). Functional principal component
+    analysis for partially observed elliptical process, *Submitted*.
+
+-   Yao, F., Müller, H. G., & Wang, J. L. (2005). Functional data
+    analysis for sparse longitudinal data. *Journal of the American
+    statistical association*, 100(470), 577-590.
