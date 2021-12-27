@@ -50,7 +50,6 @@ package which implements proposed method via M-estimator and equation
 
 ``` r
 # Robust mean and covariance functions
-set.seed(5)
 cov.obj <- cov_ogk(X,
                    type = "huber",
                    MM = TRUE,
@@ -169,8 +168,9 @@ pred_ogk_mat <- predict(pca.ogk.obj, K = 4)
 
 
 ### Completion and Reconstruction example
-i <- 1
+i <- 1   # 1st curve
 NA_ind <- which(is.na(X[i, ]))   # index of missing periods
+
 par(mfrow = c(1, 2))
 
 # Completion
@@ -213,8 +213,9 @@ results in our paper.
 
 ## Reference
 
--   Y. Park, H. Kim and Y. Lim (2022+). Functional principal component
-    analysis for partially observed elliptical process, *Submitted*.
+-   Park, Y., Kim, H. and Lim, Y. (2022+). Functional principal
+    component analysis for partially observed elliptical process,
+    *Submitted*.
 
 -   Yao, F., Müller, H. G., & Wang, J. L. (2005). Functional data
     analysis for sparse longitudinal data. *Journal of the American
