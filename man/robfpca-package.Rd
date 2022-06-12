@@ -4,10 +4,9 @@
 \name{robfpca-package}
 \alias{robfpca}
 \alias{robfpca-package}
-\title{robfpca: Robust principal component analysis for partially observed functional data}
+\title{robfpca: Functional principal component analysis for partially observed elliptical process}
 \description{
-Robust principal component analysis for partially observed functional data
-    Use four spaces when indenting paragraphs within the Description.
+Robust principal component analysis for partially observed functional data Use four spaces when indenting paragraphs within the Description.
 }
 \author{
 \strong{Maintainer}: Hyunsung Kim \email{hyunsung1021@gmail.com}

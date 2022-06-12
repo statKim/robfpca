@@ -1,8 +1,8 @@
 Package: robfpca
 Type: Package
-Title: Robust principal component analysis for partially observed functional data
+Title: Functional principal component analysis for partially observed elliptical process
 Version: 0.1.0
-Date: 2021-04-17
+Date: 2022-06-12
 Authors@R: c(person("Hyunsung", "Kim", role = c("aut","cre"), 
                     email = "hyunsung1021@gmail.com"))
 Maintainer: Hyunsung Kim <hyunsung1021@gmail.com>
@@ -31,3 +31,5 @@ Imports:
     refund
 Suggests: 
     GA
+Depends: 
+    R (>= 2.10)
