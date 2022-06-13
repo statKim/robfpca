@@ -49,8 +49,7 @@ sim_corr <- function(n = 403,
   phi <- cbind(
     sqrt(2)*cos(2*pi*t),
     sqrt(2)*cos(4*pi*t),
-    sqrt(2)*cos(6*pi*t),
-    sqrt(2)*cos(8*pi*t)
+    sqrt(2)*cos(6*pi*t)
   )
 
   r.par <- 200
@@ -65,7 +64,6 @@ sim_corr <- function(n = 403,
     xi <- rbind(
       mvtnorm::rmvnorm(n = 1, mean = rep(0, n.loc), sigma = 9*cor.sim),
       mvtnorm::rmvnorm(n = 1, mean = rep(0, n.loc), sigma = 4*cor.sim),
-      mvtnorm::rmvnorm(n = 1, mean = rep(0, n.loc), sigma = 1*cor.sim),
       mvtnorm::rmvnorm(n = 1, mean = rep(0, n.loc), sigma = 1*cor.sim)
     )
   } else if (dist == 'tdist') {
@@ -78,10 +76,6 @@ sim_corr <- function(n = 403,
       LaplacesDemon::rmvt(n = 1,
                           mu = rep(0, n.loc),
                           S = 4*cor.sim,
-                          df = 3),
-      LaplacesDemon::rmvt(n = 1,
-                          mu = rep(0, n.loc),
-                          S = 1*cor.sim,
                           df = 3),
       LaplacesDemon::rmvt(n = 1,
                           mu = rep(0, n.loc),
@@ -231,11 +225,10 @@ get_corr_eigen <- function(grid) {
   eig_ftn <- cbind(
     sqrt(2)*cos(2*pi*t),
     sqrt(2)*cos(4*pi*t),
-    sqrt(2)*cos(6*pi*t),
-    sqrt(2)*cos(8*pi*t)
+    sqrt(2)*cos(6*pi*t)
   )
 
-  for (j in 1:4){
+  for (j in 1:3){
     xx <- eig_ftn[, j]
     eig_ftn[, j] <- xx/sqrt(fdapace::trapzRcpp(t, xx^2))
   }
