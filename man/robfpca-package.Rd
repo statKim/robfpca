@@ -6,7 +6,7 @@
 \alias{robfpca-package}
 \title{robfpca: Functional principal component analysis for partially observed elliptical process}
 \description{
-Robust principal component analysis for partially observed functional data Use four spaces when indenting paragraphs within the Description.
+Functional principal component analysis for partially observed elliptical process Use four spaces when indenting paragraphs within the Description.
 }
 \author{
 \strong{Maintainer}: Hyunsung Kim \email{hyunsung1021@gmail.com}

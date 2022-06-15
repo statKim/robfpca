@@ -6,7 +6,7 @@ Date: 2022-06-12
 Authors@R: c(person("Hyunsung", "Kim", role = c("aut","cre"), 
                     email = "hyunsung1021@gmail.com"))
 Maintainer: Hyunsung Kim <hyunsung1021@gmail.com>
-Description: Robust principal component analysis for partially observed functional data
+Description: Functional principal component analysis for partially observed elliptical process
     Use four spaces when indenting paragraphs within the Description.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -30,6 +30,9 @@ Imports:
     chemometrics,
     refund
 Suggests: 
-    GA
+    GA,
+    knitr,
+    rmarkdown
 Depends: 
     R (>= 2.10)
+VignetteBuilder: knitr
