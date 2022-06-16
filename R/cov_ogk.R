@@ -71,8 +71,10 @@ cov_ogk <- function(X,
   rob.disp <- obj.gk$disp
 
   # Step 1. scaling
-  Y <- sweep(X, 2, rob.disp, "/") %>%
-    tidyr::replace_na(0)
+  Y <- sweep(X, 2, rob.disp, "/")
+  Y[is.na(Y)] <- 0
+  # Y <- sweep(X, 2, rob.disp, "/") %>%
+  #   tidyr::replace_na(0)
 
   # Step 3. spectral decomposition
   eig <- eigen(U)
@@ -513,10 +515,10 @@ cv.cov_ogk <- function(X,
   st <- expand.grid(gr, gr)
   cov_st <- as.numeric(cov_hat)
 
-  # remove diagonal parts from raw covariance (See Yao et al.(2005))
-  ind <- which(st[, 1] == st[, 2], arr.ind = T)
-  st <- st[-ind, ]
-  cov_st <- cov_st[-ind]
+  # # remove diagonal parts from raw covariance (See Yao et al.(2005))
+  # ind <- which(st[, 1] == st[, 2], arr.ind = T)
+  # st <- st[-ind, ]
+  # cov_st <- cov_st[-ind]
 
   # get index for each folds
   n <- nrow(st)
