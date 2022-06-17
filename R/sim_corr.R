@@ -14,6 +14,8 @@
 #' @param dist a distribution which the data is generated. "normal"(Normal distribution) and "tdist"(t-distribution) are supported. If dist = "tdist", the option of \code{out.prop} and \code{out.type} are ignored.
 #' @param noise a numeric value which is added random gaussian noises. Default is 0(No random noise).
 #' @param dist.mat a 403 spatial locations and their distances matrix
+#' @param d a parameter for missingness when \code{type} is "partial" (See Kraus(2015))
+#' @param f a parameter for missingness when \code{type} is "partial" (See Kraus(2015))
 #'
 #' @return a list contatining as follows:
 #' \item{Ly}{a list of n vectors containing the observed values for each individual.}
@@ -23,12 +25,13 @@
 #'
 #' @examples
 #' set.seed(100)
-#' x.list <- sim_corr(n = 100,
+#' n <- 100
+#' x.list <- sim_corr(n = n,
 #'                    type = "partial",
 #'                    out.prop = 0.2,
 #'                    out.type = 1,
 #'                    dist = "normal",
-#'                    dist.mat = dist.mat)
+#'                    dist.mat = dist.mat[1:n, 1:n])
 #' x <- list2matrix(x.list)
 #' matplot(t(x), type = "l")
 #'
@@ -39,7 +42,9 @@ sim_corr <- function(n = 403,
                      out.type = 1,
                      dist = "normal",
                      noise = 0,
-                     dist.mat = dist.mat) {
+                     dist.mat = dist.mat,
+                     d = 1.4,
+                     f = 0.2) {
 
   gr <- seq(0, 1, length.out = 51)   # equispaced points
   t <- gr
@@ -105,7 +110,8 @@ sim_corr <- function(n = 403,
     # generate observation periods (Kraus(2015) setting)
     # curve 1 will be missing on (.4,.7), other curves on random subsets
     x.obs <- rbind((gr <= .4) | (gr >= .7),
-                   simul.obs(n = n-1, grid = gr)) # TRUE if observed
+                   simul.obs(n = n-1, grid = gr,
+                             d = d, f = f)) # TRUE if observed
     # remove missing periods
     x.partial <- x.full
     x.partial[!x.obs] <- NA

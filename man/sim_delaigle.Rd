@@ -10,7 +10,9 @@ sim_delaigle(
   out.prop = 0.2,
   out.type = 1,
   dist = "normal",
-  noise = 0
+  noise = 0,
+  d = 1.4,
+  f = 0.2
 )
 }
 \arguments{
@@ -25,6 +27,10 @@ sim_delaigle(
 \item{dist}{a distribution which the data is generated. "normal"(Normal distribution) and "tdist"(t-distribution) are supported. If dist = "tdist", the option of \code{out.prop} and \code{out.type} are ignored.}
 
 \item{noise}{a numeric value which is added random gaussian noises. Default is 0(No random noise).}
+
+\item{d}{a parameter for missingness when \code{type} is "partial" (See Kraus(2015))}
+
+\item{f}{a parameter for missingness when \code{type} is "partial" (See Kraus(2015))}
 }
 \value{
 a list contatining as follows:

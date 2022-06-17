@@ -11,7 +11,9 @@ sim_corr(
   out.type = 1,
   dist = "normal",
   noise = 0,
-  dist.mat = dist.mat
+  dist.mat = dist.mat,
+  d = 1.4,
+  f = 0.2
 )
 }
 \arguments{
@@ -28,6 +30,10 @@ sim_corr(
 \item{noise}{a numeric value which is added random gaussian noises. Default is 0(No random noise).}
 
 \item{dist.mat}{a 403 spatial locations and their distances matrix}
+
+\item{d}{a parameter for missingness when \code{type} is "partial" (See Kraus(2015))}
+
+\item{f}{a parameter for missingness when \code{type} is "partial" (See Kraus(2015))}
 }
 \value{
 a list contatining as follows:
@@ -41,12 +47,13 @@ Partially observed functional data is generated with 51 regular grids from the s
 }
 \examples{
 set.seed(100)
-x.list <- sim_corr(n = 100,
+n <- 100
+x.list <- sim_corr(n = n,
                    type = "partial",
                    out.prop = 0.2,
                    out.type = 1,
                    dist = "normal",
-                   dist.mat = dist.mat)
+                   dist.mat = dist.mat[1:n, 1:n])
 x <- list2matrix(x.list)
 matplot(t(x), type = "l")
 
