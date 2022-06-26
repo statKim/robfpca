@@ -13,7 +13,8 @@ sim_corr(
   noise = 0,
   dist.mat = dist.mat,
   d = 1.4,
-  f = 0.2
+  f = 0.2,
+  r.par = 200
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ sim_corr(
 \item{d}{a parameter for missingness when \code{type} is "partial" (See Kraus(2015))}
 
 \item{f}{a parameter for missingness when \code{type} is "partial" (See Kraus(2015))}
+
+\item{r.par}{a parameter that control the spatial correlation}
 }
 \value{
 a list contatining as follows:

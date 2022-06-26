@@ -16,6 +16,7 @@
 #' @param dist.mat a 403 spatial locations and their distances matrix
 #' @param d a parameter for missingness when \code{type} is "partial" (See Kraus(2015))
 #' @param f a parameter for missingness when \code{type} is "partial" (See Kraus(2015))
+#' @param r.par a parameter that control the spatial correlation
 #'
 #' @return a list contatining as follows:
 #' \item{Ly}{a list of n vectors containing the observed values for each individual.}
@@ -44,7 +45,8 @@ sim_corr <- function(n = 403,
                      noise = 0,
                      dist.mat = dist.mat,
                      d = 1.4,
-                     f = 0.2) {
+                     f = 0.2,
+                     r.par = 200) {
 
   gr <- seq(0, 1, length.out = 51)   # equispaced points
   t <- gr
@@ -57,7 +59,6 @@ sim_corr <- function(n = 403,
     sqrt(2)*cos(6*pi*t)
   )
 
-  r.par <- 200
   cor.sim <- matrix(fields::Matern(as.vector(dist.mat),
                                    range = r.par,
                                    smoothness = 1),
