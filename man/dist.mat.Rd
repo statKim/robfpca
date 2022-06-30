@@ -3,14 +3,14 @@
 \docType{data}
 \name{dist.mat}
 \alias{dist.mat}
-\title{403 spatial locations and their distances matrix}
+\title{313 spatial locations and their distance matrix from South Korea's PM10 concentration data}
 \format{
-An object of class \code{matrix} (inherits from \code{array}) with 403 rows and 403 columns.
+An object of class \code{matrix} (inherits from \code{array}) with 313 rows and 313 columns.
 }
 \usage{
 dist.mat
 }
 \description{
-A dataset containing 403 spatial locations and their distances matrix
+A dataset containing 313 spatial locations and their distances matrix South Korea's PM10 concentration data
 }
 \keyword{datasets}
