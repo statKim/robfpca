@@ -6,10 +6,16 @@
 \alias{robfpca-package}
 \title{robfpca: Functional principal component analysis for partially observed elliptical process}
 \description{
-Functional principal component analysis for partially observed elliptical process Use four spaces when indenting paragraphs within the Description.
+Robust functional principal component analysis (FPCA) for partially observed functional data. It is based on the pairwise robust covariance function estimation and eigenanalysis. The location and scale functions are computed via pointwise M-estimator, and the covariance function is obtained via robust pairwise computation based on Orthogonalized Gnanadesikan-Kettenring (OGK) estimation. Additionally, bivariate Nadaraya-Watson smoothing is applied for smoothed covariance surfaces. To deal with the missing segments, FPCA is performed via PACE (Principal Analysis via Conditional Expectation).
 }
 \author{
 \strong{Maintainer}: Hyunsung Kim \email{hyunsung1021@gmail.com}
+
+Authors:
+\itemize{
+  \item Yeonjoo Park
+  \item Yaeji Lim
+}
 
 }
 \keyword{internal}

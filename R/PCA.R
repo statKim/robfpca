@@ -1,4 +1,3 @@
-
 #' Functional Principal Component Analysis (FPCA) via Conditional Expectation
 #'
 #' FPCA is performed via PACE (Principal Analysis via Conditional Expectation) proposed by Yao et al. (2005).
@@ -9,8 +8,21 @@
 #' @param cov a covariance function estimated at work.grid
 #' @param sig2 a noise variance
 #' @param work.grid a work grid
-#' @param K a number of PCs. If K is NULL, K is selected by PVE.
+#' @param K a number of FPCs. If K is NULL, K is selected by PVE.
 #' @param PVE a proportion of variance explained
+#'
+#' @return a list contatining as follows:
+#' \item{data}{a list containing Lt and Ly}
+#' \item{lambda}{the first K eigenvalues}
+#' \item{eig.fun}{the first K eigenvectors}
+#' \item{pc.score}{the first K FPC scores}
+#' \item{K}{a number of FPCs}
+#' \item{PVE}{a proportion of variance explained}
+#' \item{work.grid}{a work grid}
+#' \item{eig.obj}{an object of the eigenanalysis}
+#' \item{mu}{a mean function}
+#' \item{cov}{a covariance function}
+#' \item{sig2}{a noise variance}
 #'
 #' @export
 funPCA <- function(Lt,
@@ -49,14 +61,14 @@ funPCA <- function(Lt,
 
     ## estimate PC scores via conditional expectation
     # - for loop is as fast as sapply!
-    PC_score <- matrix(NA, n, K)
+    pc_score <- matrix(NA, n, K)
 
     ## If there exist complete curves, compute by matrix mutliplication.
     # complete curves - calculate matrix multiplication
     ind_complete <- sapply(Lt, function(t) { identical(work.grid, t) })
     if (sum(ind_complete) > 0) {
         complete_curves <- list2rbind(Ly[ind_complete])   # combine complete curves
-        PC_score[ind_complete, ] <- get_CE_score(work.grid,
+        pc_score[ind_complete, ] <- get_CE_score(work.grid,
                                                  complete_curves,
                                                  mu,
                                                  cov,
@@ -73,7 +85,7 @@ funPCA <- function(Lt,
 
     # snippets or partially observed curves - calculate individually
     for (i in ind_snippet) {
-        PC_score[i, ] <- get_CE_score(Lt[[i]],
+        pc_score[i, ] <- get_CE_score(Lt[[i]],
                                       Ly[[i]],
                                       mu,
                                       cov,
@@ -90,8 +102,7 @@ funPCA <- function(Lt,
         lambda = eig.obj$lambda[1:K],
         eig.fun = matrix(eig.obj$phi[, 1:K],
                          ncol = K),
-        pc.score = PC_score,
-        # pc.score = t(PC_score),
+        pc.score = pc_score,
         K = K,
         PVE = eig.obj$PVE[K],
         work.grid = work.grid,

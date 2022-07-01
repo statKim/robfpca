@@ -2,12 +2,17 @@ Package: robfpca
 Type: Package
 Title: Functional principal component analysis for partially observed elliptical process
 Version: 0.1.0
-Date: 2022-06-12
-Authors@R: c(person("Hyunsung", "Kim", role = c("aut","cre"), 
-                    email = "hyunsung1021@gmail.com"))
+Date: 2022-07-01
+Authors@R: c(person("Yeonjoo", "Park", role = c("aut")),
+             person("Hyunsung", "Kim", role = c("aut","cre"), 
+                    email = "hyunsung1021@gmail.com"),
+             person("Yaeji", "Lim", role = c("aut")))
 Maintainer: Hyunsung Kim <hyunsung1021@gmail.com>
-Description: Functional principal component analysis for partially observed elliptical process
-    Use four spaces when indenting paragraphs within the Description.
+Description: Robust functional principal component analysis (FPCA) for partially observed functional data.
+    It is based on the pairwise robust covariance function estimation and eigenanalysis.
+    The location and scale functions are computed via pointwise M-estimator, and the covariance function is obtained via robust pairwise computation based on Orthogonalized Gnanadesikan-Kettenring (OGK) estimation.
+    Additionally, bivariate Nadaraya-Watson smoothing is applied for smoothed covariance surfaces.
+    To deal with the missing segments, FPCA is performed via PACE (Principal Analysis via Conditional Expectation).
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -34,5 +39,5 @@ Suggests:
     knitr,
     rmarkdown
 Depends: 
-    R (>= 2.10)
+    R (>= 4.0.0)
 VignetteBuilder: knitr

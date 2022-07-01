@@ -1,23 +1,32 @@
-
-#' The robust covariance esimation based on modified Orthogonalized Gnanadesikan-Kettenring (OGK) estimation for partially observed functional data
+#' Robust covariance function esimation based on modified Orthogonalized Gnanadesikan-Kettenring (OGK) estimation for partially observed functional data
 #'
-#' The mean function is obtained via cross-sectional M-estimator of location.
-#' The covariance function is obtained via OGK estimation using M-estimator of dispersion.
+#' The location and scale functions are computed via pointwise M-estimator, and the covariance function is obtained via robust pairwise computation based on Orthogonalized Gnanadesikan-Kettenring (OGK) estimation.
+#' Additionally, bivariate Nadaraya-Watson smoothing is applied for smoothed covariance surfaces.
 #'
-#' @param X  a n x p matrix with or without NA.
+#' @param X  a n x p matrix. It allows NA.
 #' @param type  the option for robust dispersion estimator. "huber", "bisquare", and "tdist" are supported.
-#' @param MM the option for M-scale estimator in GK identity. Default is same method using \code{type} which is iterative algorithm. The closed form solution using method of moments can be used when \code{MM == TRUE}.
-#' @param smooth If it is TRUE, bivariate Nadaraya-Watson smoothing is performed using \code{fields::smooth2d()}. Default is FALSE.
+#' @param MM the option for M-scale estimator in GK identity. If it is FALSE, the same method using \code{type} is used, that is the iterative algorithm. The closed form solution using method of moments can be used when \code{MM == TRUE}. Defalut is TRUE.
+#' @param smooth If it is TRUE, bivariate Nadaraya-Watson smoothing is performed using \code{fields::smooth2d()}. Default is TRUE.
+#' @param grid a vector containing the observed timepoints
 #' @param bw a bandwidth when \code{smooth = TRUE}.
+#' @param cv If it is TRUE, K-fold cross-validation is performed for the bandwidth selection when \code{smooth = TRUE}.
 #' @param noise.var If it is TRUE, we adjust the noise variance by using Yao et al.(2005). Default is FALSE.
 #' @param df the degrees of freedm when \code{type = "tdist"}.
-#' @param reweight If it is TRUE, the reweight procedure is performed in Maronna and Zammar(2002). Default is FALSE.
-#' @param beta The parameter for reweight step. See Maronna and Zammar(2002).
+#' @param cv_optns the options of K-fold cross-validation when \code{cv = TRUE}. See Details.
+#'
+#' @details The options of \code{cv_optns}:
+#' \describe{
+#' \item{bw_cand}{a vector contains the candidates of bandwidths for bivariate smoothing.}
+#' \item{K}{the number of folds for K-fold cross validation.}
+#' \item{ncores}{the number of cores on \code{foreach} for parallel computing.}
+#' }
 #'
 #' @return a list contatining as follows:
 #' \item{mean}{the vector containing the robust mean function.}
 #' \item{cov}{a matrix containing robust covariance function.}
 #' \item{noise.var}{a noise variance estimator.}
+#' \item{bw}{a bandwidth of the bivariate smoothing selected from K-fold cross-validation}
+#' \item{cv.obj}{cv.obj from bandwidth selection}
 #'
 #' @examples
 #' set.seed(100)
@@ -29,14 +38,13 @@
 #' x <- list2matrix(x.list)
 #' cov.obj <- cov_ogk(x,
 #'                    type = "huber",
-#'                    smooth = TRUE,
 #'                    bw = 0.1)
 #' mu.ogk.sm <- cov.obj$mean
 #' cov.ogk.sm <- cov.obj$cov
 #' noise.ogk.sm <- cov.obj$noise.var
 #'
 #' @references
-#' \cite{Kim, H., Park, Y., & Lim, Y. (2022+). Robust principal component analysis and its application for partially observed functional data, Submitted.}
+#' \cite{Park, Y., Kim, H., & Lim, Y. (2022+). Functional principal component analysis for partially observed elliptical process, Under review.}
 #'
 #' \cite{Maronna, R. A., & Zamar, R. H. (2002). Robust estimates of location and dispersion for high-dimensional datasets. Technometrics, 44(4), 307-317.}
 #'
@@ -49,14 +57,18 @@
 # df : degrees of freedom for type = "tdist"
 cov_ogk <- function(X,
                     type = c("huber","bisquare","tdist"),
-                    MM = FALSE,
-                    smooth = FALSE,
+                    MM = TRUE,
+                    smooth = TRUE,
+                    grid = NULL,
                     bw = NULL,
+                    cv = FALSE,
                     noise.var = FALSE,
                     df = 3,
-                    reweight = FALSE,
-                    beta = 0.9) {
-  p <- ncol(X)
+                    cv_optns = list(bw_cand = NULL,
+                                    K = 5,
+                                    ncores = 1)) {
+  n <- nrow(X)   # number of curves
+  p <- ncol(X)   # number of timepoints
 
   # Step 2. correlation matrix
   obj.gk <- cov_gk(X,
@@ -112,27 +124,27 @@ cov_ogk <- function(X,
   rob.cov <- A %*% Gamma %*% t(A)
   rob.mean <- as.numeric( A %*% matrix(nu, ncol = 1) )
 
-  # Step 7. Re-weighting
-  # Hard rejection using Beta-quantile chi-squared dist
-  if (reweight == TRUE) {
-    z.scale <- sqrt(diag(Gamma))
-    d <- sweep(Z, 2, nu, "-") %>%
-      sweep(2, z.scale, "/")
-    d <- rowSums(d^2)   # mahalanobis distance
-    d0 <- qchisq(beta, p)*median(d) / qchisq(0.5, p)   # cut-off of weight
-    W <- ifelse(d <= d0, 1, 0)   # weight
-
-    # re-weighted mean
-    X0 <- X %>%
-      tidyr::replace_na(0)
-    rob.mean <- as.numeric( matrix(W, nrow = 1) %*% X0 / sum(W) )
-
-    # re-weighted covariance
-    Xmu0 <- sweep(X, 2, rob.mean, "-") %>%
-      sweep(1, W, "*") %>%
-      tidyr::replace_na(0)
-    rob.cov <- t(Xmu0) %*% Xmu0 / sum(W)
-  }
+  # # Step 7. Re-weighting
+  # # Hard rejection using Beta-quantile chi-squared dist
+  # if (reweight == TRUE) {
+  #   z.scale <- sqrt(diag(Gamma))
+  #   d <- sweep(Z, 2, nu, "-") %>%
+  #     sweep(2, z.scale, "/")
+  #   d <- rowSums(d^2)   # mahalanobis distance
+  #   d0 <- qchisq(beta, p)*median(d) / qchisq(0.5, p)   # cut-off of weight
+  #   W <- ifelse(d <= d0, 1, 0)   # weight
+  #
+  #   # re-weighted mean
+  #   X0 <- X %>%
+  #     tidyr::replace_na(0)
+  #   rob.mean <- as.numeric( matrix(W, nrow = 1) %*% X0 / sum(W) )
+  #
+  #   # re-weighted covariance
+  #   Xmu0 <- sweep(X, 2, rob.mean, "-") %>%
+  #     sweep(1, W, "*") %>%
+  #     tidyr::replace_na(0)
+  #   rob.cov <- t(Xmu0) %*% Xmu0 / sum(W)
+  # }
 
 
   # subtract noise variance
@@ -144,15 +156,38 @@ cov_ogk <- function(X,
   }
   diag(rob.cov) <- diag(rob.cov) - noise.var
 
+
   # 2-dimensional smoothing - does not need to adjust noise variance
-  if (smooth == T) {
-    p <- nrow(rob.cov)
-    gr <- seq(0, 1, length.out = p)
-    if (is.null(bw)) {
-      bw <- 0.2
+  if (smooth == TRUE) {
+    # Obtain work.grid
+    if (is.null(grid)) {
+      work.grid <- seq(0, 1, length.out = p)
+    } else {
+      if (length(grid) != p) {
+        stop("length(grid) does not equal to ncol(X).")
+      }
+      work.grid <- grid
     }
+
+    # K-fold cross-validation for bandwidth selection
+    if (cv == TRUE) {
+      cv.obj <- cv.cov_ogk(X,
+                           type = type,
+                           MM = MM,
+                           bw_cand = cv_optns$bw_cand,
+                           K = cv_optns$K,
+                           ncores = cv_optns$ncores)
+      bw <- cv.obj$selected_bw
+    } else {
+      if (is.null(bw)) {
+        bw <- 5 * max(diff(work.grid))
+      }
+      cv.obj <- NULL
+    }
+
+    # Bivariate Nadaraya-Watson smoothing using optimal or given bandwidth
     rob.cov <- fields::smooth.2d(as.numeric(rob.cov),
-                                 x = expand.grid(gr, gr),
+                                 x = expand.grid(work.grid, work.grid),
                                  surface = F,
                                  theta = bw,
                                  nrow = p,
@@ -160,11 +195,17 @@ cov_ogk <- function(X,
     # knots <- min(p/2, 35)   # Remark 3 from Xiao(2013)
     # cov.sm.obj <- refund::fbps(rob.cov,  knots = knots,list(x = gr, z = gr))
     # rob.cov <- cov.sm.obj$Yhat
+  } else {
+    # Does not perform bivariate smoothing
+    bw <- NULL
+    cv.obj <- NULL
   }
 
   return(list(mean = rob.mean,
               cov = rob.cov,
-              noise.var = noise.var))
+              noise.var = noise.var,
+              bw = bw,
+              cv.obj = cv.obj))
 }
 
 
@@ -479,7 +520,7 @@ cov_gk <- function(X,
 ### - It is conducted for element-wise covariance
 cv.cov_ogk <- function(X,
                        type = c("huber","bisquare","tdist"),
-                       MM = FALSE,
+                       MM = TRUE,
                        bw_cand = NULL,
                        K = 5,
                        ncores = 1) {
@@ -507,8 +548,7 @@ cv.cov_ogk <- function(X,
                      type = type,
                      MM = MM,
                      smooth = FALSE,
-                     noise.var = FALSE,
-                     reweight = FALSE)
+                     noise.var = FALSE)
   cov_hat <- cov_hat$cov
 
   # element-wise covariances

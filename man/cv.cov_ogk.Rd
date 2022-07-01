@@ -7,7 +7,7 @@
 cv.cov_ogk(
   X,
   type = c("huber", "bisquare", "tdist"),
-  MM = FALSE,
+  MM = TRUE,
   bw_cand = NULL,
   K = 5,
   ncores = 1

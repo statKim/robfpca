@@ -19,9 +19,23 @@ funPCA(Lt, Ly, mu, cov, sig2 = 0, work.grid = NULL, K = NULL, PVE = 0.99)
 
 \item{work.grid}{a work grid}
 
-\item{K}{a number of PCs. If K is NULL, K is selected by PVE.}
+\item{K}{a number of FPCs. If K is NULL, K is selected by PVE.}
 
 \item{PVE}{a proportion of variance explained}
+}
+\value{
+a list contatining as follows:
+\item{data}{a list containing Lt and Ly}
+\item{lambda}{the first K eigenvalues}
+\item{eig.fun}{the first K eigenvectors}
+\item{pc.score}{the first K FPC scores}
+\item{K}{a number of FPCs}
+\item{PVE}{a proportion of variance explained}
+\item{work.grid}{a work grid}
+\item{eig.obj}{an object of the eigenanalysis}
+\item{mu}{a mean function}
+\item{cov}{a covariance function}
+\item{sig2}{a noise variance}
 }
 \description{
 FPCA is performed via PACE (Principal Analysis via Conditional Expectation) proposed by Yao et al. (2005).
