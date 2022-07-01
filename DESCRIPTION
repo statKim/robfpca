@@ -31,9 +31,7 @@ Imports:
     mvtnorm,
     LaplacesDemon,
     RobStatTM,
-    lqmm,
-    chemometrics,
-    refund
+    lqmm
 Suggests: 
     GA,
     knitr,

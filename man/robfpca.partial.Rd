@@ -14,7 +14,6 @@ robfpca.partial(
   smooth = TRUE,
   bw = NULL,
   cv = FALSE,
-  noise.var = FALSE,
   df = 3,
   cv_optns = list(bw_cand = NULL, K = 5, ncores = 1)
 )
@@ -38,8 +37,6 @@ robfpca.partial(
 
 \item{cv}{If it is TRUE, K-fold cross-validation is performed for the bandwidth selection when \code{smooth = TRUE}.}
 
-\item{noise.var}{If it is TRUE, we adjust the noise variance by using Yao et al.(2005). Default is FALSE.}
-
 \item{df}{the degrees of freedm when \code{type = "tdist"}.}
 
 \item{cv_optns}{the options of K-fold cross-validation when \code{cv = TRUE}. See Details.}
@@ -60,8 +57,7 @@ a list contatining as follows:
 \item{cov.obj}{the object from cov_ogk(). See ?cov_ogk().}
 }
 \description{
-Robust functional principal component analysis (FPCA) for partially observed functional data.
-It is based on the pairwise robust covariance function estimation and eigenanalysis.
+Robust functional principal component analysis (FPCA) for partially observed functional data is performed based on the pairwise robust covariance function estimation and eigenanalysis.
 }
 \details{
 The location and scale functions are computed via pointwise M-estimator, and the covariance function is obtained via robust pairwise computation based on Orthogonalized Gnanadesikan-Kettenring (OGK) estimation.

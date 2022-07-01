@@ -10,7 +10,6 @@
 #' @param grid a vector containing the observed timepoints
 #' @param bw a bandwidth when \code{smooth = TRUE}.
 #' @param cv If it is TRUE, K-fold cross-validation is performed for the bandwidth selection when \code{smooth = TRUE}.
-#' @param noise.var If it is TRUE, we adjust the noise variance by using Yao et al.(2005). Default is FALSE.
 #' @param df the degrees of freedm when \code{type = "tdist"}.
 #' @param cv_optns the options of K-fold cross-validation when \code{cv = TRUE}. See Details.
 #'
@@ -24,7 +23,6 @@
 #' @return a list contatining as follows:
 #' \item{mean}{the vector containing the robust mean function.}
 #' \item{cov}{a matrix containing robust covariance function.}
-#' \item{noise.var}{a noise variance estimator.}
 #' \item{bw}{a bandwidth of the bivariate smoothing selected from K-fold cross-validation}
 #' \item{cv.obj}{cv.obj from bandwidth selection}
 #'
@@ -41,14 +39,11 @@
 #'                    bw = 0.1)
 #' mu.ogk.sm <- cov.obj$mean
 #' cov.ogk.sm <- cov.obj$cov
-#' noise.ogk.sm <- cov.obj$noise.var
 #'
 #' @references
 #' \cite{Park, Y., Kim, H., & Lim, Y. (2022+). Functional principal component analysis for partially observed elliptical process, Under review.}
 #'
 #' \cite{Maronna, R. A., & Zamar, R. H. (2002). Robust estimates of location and dispersion for high-dimensional datasets. Technometrics, 44(4), 307-317.}
-#'
-#' \cite{Yao, F., Müller, H. G., & Wang, J. L. (2005). Functional data analysis for sparse longitudinal data. Journal of the American statistical association, 100(470), 577-590.}
 #'
 #' @import RobStatTM stats
 #'
@@ -62,7 +57,6 @@ cov_ogk <- function(X,
                     grid = NULL,
                     bw = NULL,
                     cv = FALSE,
-                    noise.var = FALSE,
                     df = 3,
                     cv_optns = list(bw_cand = NULL,
                                     K = 5,
@@ -77,7 +71,6 @@ cov_ogk <- function(X,
                    cor = TRUE,
                    smooth = FALSE,
                    psd = FALSE,
-                   noise.var = FALSE,
                    df = df)
   U <- obj.gk$cov
   rob.disp <- obj.gk$disp
@@ -147,14 +140,14 @@ cov_ogk <- function(X,
   # }
 
 
-  # subtract noise variance
-  if (noise.var == TRUE) {
-    noise.var <- noise_var_gk(X,
-                              cov = rob.cov)
-  } else {
-    noise.var <- 0
-  }
-  diag(rob.cov) <- diag(rob.cov) - noise.var
+  # # subtract noise variance
+  # if (noise.var == TRUE) {
+  #   noise.var <- noise_var_gk(X,
+  #                             cov = rob.cov)
+  # } else {
+  #   noise.var <- 0
+  # }
+  # diag(rob.cov) <- diag(rob.cov) - noise.var
 
 
   # 2-dimensional smoothing - does not need to adjust noise variance
@@ -203,7 +196,7 @@ cov_ogk <- function(X,
 
   return(list(mean = rob.mean,
               cov = rob.cov,
-              noise.var = noise.var,
+              # noise.var = noise.var,
               bw = bw,
               cv.obj = cv.obj))
 }
@@ -243,7 +236,7 @@ cov_gk <- function(X,
                    cor = FALSE,
                    smooth = FALSE,
                    psd = TRUE,
-                   noise.var = FALSE,
+                   # noise.var = FALSE,
                    df = 3) {
   p <- ncol(X)
 
@@ -261,12 +254,13 @@ cov_gk <- function(X,
                             df = df)
       rob.mean[i] <- obj$estimate[1]
       rob.disp[i] <- obj$estimate[2]
-    }  else if (type == "trim") {
-      rob.mean[i] <- mean(X[which(!is.na(X[, i])), i],
-                          trim = 0.1)
-      rob.disp[i] <- chemometrics::sd_trim(X[which(!is.na(X[, i])), i],
-                                           trim = 0.1)
     }
+    # }  else if (type == "trim") {
+    #   rob.mean[i] <- mean(X[which(!is.na(X[, i])), i],
+    #                       trim = 0.1)
+    #   rob.disp[i] <- chemometrics::sd_trim(X[which(!is.na(X[, i])), i],
+    #                                        trim = 0.1)
+    # }
   }
 
   # Compute GK correlation
@@ -361,27 +355,26 @@ cov_gk <- function(X,
             }
           }
 
-
-        } else if (type == "trim") {   # Trimmed standard deviation
-          if (cor == TRUE) {
-            # Scaling to obtain correlation matrix
-            disp <- apply(X[, c(i,j)], 2, function(col){
-              chemometrics::sd_trim(col[ind_not_NA], trim = 0.1)
-            })
-            z1 <- X[, i]/disp[1] + X[, j]/disp[2]
-            z2 <- X[, i]/disp[1] - X[, j]/disp[2]
-          } else {
-            # Not scaling
-            z1 <- X[, i] + X[, j]
-            z2 <- X[, i] - X[, j]
-          }
-
-          z1.disp <- chemometrics::sd_trim(z1[ind_not_NA], trim = 0.1)
-          if (sd(z2[ind_not_NA]) < 10^(-10)) {
-            z2.disp <- 0
-          } else {
-            z2.disp <- chemometrics::sd_trim(z2[ind_not_NA], trim = 0.1)
-          }
+        # } else if (type == "trim") {   # Trimmed standard deviation
+        #   if (cor == TRUE) {
+        #     # Scaling to obtain correlation matrix
+        #     disp <- apply(X[, c(i,j)], 2, function(col){
+        #       chemometrics::sd_trim(col[ind_not_NA], trim = 0.1)
+        #     })
+        #     z1 <- X[, i]/disp[1] + X[, j]/disp[2]
+        #     z2 <- X[, i]/disp[1] - X[, j]/disp[2]
+        #   } else {
+        #     # Not scaling
+        #     z1 <- X[, i] + X[, j]
+        #     z2 <- X[, i] - X[, j]
+        #   }
+        #
+        #   z1.disp <- chemometrics::sd_trim(z1[ind_not_NA], trim = 0.1)
+        #   if (sd(z2[ind_not_NA]) < 10^(-10)) {
+        #     z2.disp <- 0
+        #   } else {
+        #     z2.disp <- chemometrics::sd_trim(z2[ind_not_NA], trim = 0.1)
+        #   }
 
         }
 
@@ -405,14 +398,14 @@ cov_gk <- function(X,
 
   rob.cov <- cov.gk
 
-  # subtract noise variance
-  if (noise.var == TRUE) {
-    noise.var <- noise_var_gk(X,
-                              cov = rob.cov)
-  } else {
-    noise.var <- 0
-  }
-  diag(rob.cov) <- diag(rob.cov) - noise.var
+  # # subtract noise variance
+  # if (noise.var == TRUE) {
+  #   noise.var <- noise_var_gk(X,
+  #                             cov = rob.cov)
+  # } else {
+  #   noise.var <- 0
+  # }
+  # diag(rob.cov) <- diag(rob.cov) - noise.var
 
   # # 2-dimensional smoothing - does not need to adjust noise variance
   # if (smooth == T) {
@@ -454,8 +447,7 @@ cov_gk <- function(X,
 
   return(list(mean = rob.mean,
               cov = rob.cov,
-              disp = rob.disp,
-              noise.var = noise.var))
+              disp = rob.disp))
 }
 
 
@@ -547,8 +539,7 @@ cv.cov_ogk <- function(X,
   cov_hat <- cov_ogk(X,
                      type = type,
                      MM = MM,
-                     smooth = FALSE,
-                     noise.var = FALSE)
+                     smooth = FALSE)
   cov_hat <- cov_hat$cov
 
   # element-wise covariances
@@ -657,55 +648,55 @@ cv.cov_ogk <- function(X,
 
 
 
-### Yao version
-noise_var_gk <- function(x, gr = NULL, cov = NULL) {
-  m <- ncol(x)
-
-  if (is.null(cov)) {
-    cov <- cov_gk(x,
-                  smooth = FALSE,
-                  noise.var = FALSE)$cov
-  }
-
-  if (is.null(gr)) {
-    gr <- seq(0, 1, length.out = m)
-  }
-  h <- max(diff(gr))
-
-  # 1D smoothing
-  var_y <- diag(cov)
-  var_y <- stats::smooth.spline(gr, var_y)$y
-
-  df <- data.frame(v = as.numeric(cov),
-                   s = rep(gr, m),
-                   t = rep(gr, each = m))
-
-  # 2D smoothing
-  var_x <- rep(NA, m)
-  for (i in 1:m) {
-    idx <- which((abs(df$s - gr[i]) <= h + .Machine$double.eps) &
-                   (abs(df$t - gr[i]) <= h + .Machine$double.eps) &
-                   (df$s != df$t))
-    var_x[i] <- mean(df$v[idx])
-  }
-  diag(cov) <- var_x
-  cov.sm.obj <- refund::fbps(cov,
-                             knots = m/2,   # recommendation of Xiao(2013)
-                             list(x = gr,
-                                  z = gr))
-  # cov.sm.obj <- refund::fbps(cov, list(x = gr,
-  #                                      z = gr))
-  rob.var <- cov.sm.obj$Yhat
-
-  int_inf <- min(gr) + (max(gr) - min(gr)) / 4
-  int_sup <- max(gr) - (max(gr) - min(gr)) / 4
-  idx <- which(gr > int_inf & gr < int_sup)
-  noise_var <- 2 * fdapace::trapzRcpp(gr[idx], var_y[idx] - diag(rob.var)[idx])
-
-  if (noise_var < 0) {
-    noise_var <- 1e-6
-    warning("noise variance is estimated negative")
-  }
-
-  return(noise_var)
-}
+# ### Yao version
+# noise_var_gk <- function(x, gr = NULL, cov = NULL) {
+#   m <- ncol(x)
+#
+#   if (is.null(cov)) {
+#     cov <- cov_gk(x,
+#                   smooth = FALSE,
+#                   noise.var = FALSE)$cov
+#   }
+#
+#   if (is.null(gr)) {
+#     gr <- seq(0, 1, length.out = m)
+#   }
+#   h <- max(diff(gr))
+#
+#   # 1D smoothing
+#   var_y <- diag(cov)
+#   var_y <- stats::smooth.spline(gr, var_y)$y
+#
+#   df <- data.frame(v = as.numeric(cov),
+#                    s = rep(gr, m),
+#                    t = rep(gr, each = m))
+#
+#   # 2D smoothing
+#   var_x <- rep(NA, m)
+#   for (i in 1:m) {
+#     idx <- which((abs(df$s - gr[i]) <= h + .Machine$double.eps) &
+#                    (abs(df$t - gr[i]) <= h + .Machine$double.eps) &
+#                    (df$s != df$t))
+#     var_x[i] <- mean(df$v[idx])
+#   }
+#   diag(cov) <- var_x
+#   cov.sm.obj <- refund::fbps(cov,
+#                              knots = m/2,   # recommendation of Xiao(2013)
+#                              list(x = gr,
+#                                   z = gr))
+#   # cov.sm.obj <- refund::fbps(cov, list(x = gr,
+#   #                                      z = gr))
+#   rob.var <- cov.sm.obj$Yhat
+#
+#   int_inf <- min(gr) + (max(gr) - min(gr)) / 4
+#   int_sup <- max(gr) - (max(gr) - min(gr)) / 4
+#   idx <- which(gr > int_inf & gr < int_sup)
+#   noise_var <- 2 * fdapace::trapzRcpp(gr[idx], var_y[idx] - diag(rob.var)[idx])
+#
+#   if (noise_var < 0) {
+#     noise_var <- 1e-6
+#     warning("noise variance is estimated negative")
+#   }
+#
+#   return(noise_var)
+# }

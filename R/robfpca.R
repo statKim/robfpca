@@ -1,7 +1,6 @@
 #' Robust functional principal component analysis for partially observed functional data
 #'
-#' Robust functional principal component analysis (FPCA) for partially observed functional data.
-#' It is based on the pairwise robust covariance function estimation and eigenanalysis.
+#' Robust functional principal component analysis (FPCA) for partially observed functional data is performed based on the pairwise robust covariance function estimation and eigenanalysis.
 #'
 #' The location and scale functions are computed via pointwise M-estimator, and the covariance function is obtained via robust pairwise computation based on Orthogonalized Gnanadesikan-Kettenring (OGK) estimation.
 #' Additionally, bivariate Nadaraya-Watson smoothing is applied for smoothed covariance surfaces.
@@ -16,7 +15,6 @@
 #' @param smooth If it is TRUE, bivariate Nadaraya-Watson smoothing is performed using \code{fields::smooth2d()}. Default is TRUE.
 #' @param bw a bandwidth when \code{smooth = TRUE}.
 #' @param cv If it is TRUE, K-fold cross-validation is performed for the bandwidth selection when \code{smooth = TRUE}.
-#' @param noise.var If it is TRUE, we adjust the noise variance by using Yao et al.(2005). Default is FALSE.
 #' @param df the degrees of freedm when \code{type = "tdist"}.
 #' @param cv_optns the options of K-fold cross-validation when \code{cv = TRUE}. See Details.
 #'
@@ -87,7 +85,6 @@ robfpca.partial <- function(X,
                             smooth = TRUE,
                             bw = NULL,
                             cv = FALSE,
-                            noise.var = FALSE,
                             df = 3,
                             cv_optns = list(bw_cand = NULL,
                                             K = 5,
@@ -119,12 +116,11 @@ robfpca.partial <- function(X,
                        grid = work.grid,
                        bw = bw,
                        cv = cv,
-                       noise.var = noise.var,
                        df = df,
                        cv_optns = cv_optns)
     mu.ogk <- cov.obj$mean
     cov.ogk <- cov.obj$cov
-    noise.ogk <- cov.obj$noise.var
+    # noise.ogk <- cov.obj$noise.var
 
     # Transform matrix type to list
     X.list <- matrix2list(X, grid = work.grid)
@@ -136,7 +132,7 @@ robfpca.partial <- function(X,
                        Ly = Ly,
                        mu = mu.ogk,
                        cov = cov.ogk,
-                       sig2 = noise.ogk,
+                       sig2 = 0,
                        work.grid = work.grid,
                        K = K,
                        PVE = PVE)

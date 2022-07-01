@@ -12,7 +12,6 @@ cov_ogk(
   grid = NULL,
   bw = NULL,
   cv = FALSE,
-  noise.var = FALSE,
   df = 3,
   cv_optns = list(bw_cand = NULL, K = 5, ncores = 1)
 )
@@ -32,8 +31,6 @@ cov_ogk(
 
 \item{cv}{If it is TRUE, K-fold cross-validation is performed for the bandwidth selection when \code{smooth = TRUE}.}
 
-\item{noise.var}{If it is TRUE, we adjust the noise variance by using Yao et al.(2005). Default is FALSE.}
-
 \item{df}{the degrees of freedm when \code{type = "tdist"}.}
 
 \item{cv_optns}{the options of K-fold cross-validation when \code{cv = TRUE}. See Details.}
@@ -42,7 +39,6 @@ cov_ogk(
 a list contatining as follows:
 \item{mean}{the vector containing the robust mean function.}
 \item{cov}{a matrix containing robust covariance function.}
-\item{noise.var}{a noise variance estimator.}
 \item{bw}{a bandwidth of the bivariate smoothing selected from K-fold cross-validation}
 \item{cv.obj}{cv.obj from bandwidth selection}
 }
@@ -71,13 +67,10 @@ cov.obj <- cov_ogk(x,
                    bw = 0.1)
 mu.ogk.sm <- cov.obj$mean
 cov.ogk.sm <- cov.obj$cov
-noise.ogk.sm <- cov.obj$noise.var
 
 }
 \references{
 \cite{Park, Y., Kim, H., & Lim, Y. (2022+). Functional principal component analysis for partially observed elliptical process, Under review.}
 
 \cite{Maronna, R. A., & Zamar, R. H. (2002). Robust estimates of location and dispersion for high-dimensional datasets. Technometrics, 44(4), 307-317.}
-
-\cite{Yao, F., Müller, H. G., & Wang, J. L. (2005). Functional data analysis for sparse longitudinal data. Journal of the American statistical association, 100(470), 577-590.}
 }

@@ -208,14 +208,15 @@ grid()
 
 ## Reproducible Simulation Results
 
-If you use `Simulation/simulation.R`, you can obtain reproducible
-results in our paper.
+If you use `simulation.R` in
+[Here](https://github.com/statKim/fpca-partial-obs-ellipt-proc), you can
+obtain reproducible results in our paper.
 
 ## Reference
 
 -   Park, Y., Kim, H. and Lim, Y. (2022+). Functional principal
-    component analysis for partially observed elliptical process,
-    *Submitted*.
+    component analysis for partially observed elliptical process, *Under
+    review*.
 
 -   Yao, F., Müller, H. G., & Wang, J. L. (2005). Functional data
     analysis for sparse longitudinal data. *Journal of the American
