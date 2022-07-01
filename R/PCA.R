@@ -170,15 +170,7 @@ predict.funPCA <- function(object, newdata = NULL, K = NULL, ...) {
 }
 
 
-#' Obtain reconstructed curve for missing parts and simple curve registration
-#'
-#' @param x a vector containing a partially observed curve (NA for not observed grids)
-#' @param pred a vector containing a reconstructed curve for whole grid points
-#' @param grid a vector containing grid points (if NULL, it uses equally spaced grids between (0, 1))
-#' @param align If TRUE, a simple curve registration are performed for missing parts.
-#' @param conti include last observed value, thus looks continuous prediction.
-#'
-#' @export
+### Obtain reconstructed curve for missing parts and simple curve registration
 pred_missing_curve <- function(x, pred, grid = NULL, align = FALSE, conti = TRUE) {
     num_grid <- length(x)
     if (is.null(grid)) {

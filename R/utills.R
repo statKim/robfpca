@@ -38,14 +38,7 @@ get_ise <- function(x, x_hat, grid) {
 }
 
 
-#' Calculate discrete derivatives
-#'
-#' @param f_x a vector of f(x)
-#' @param x a vector of x
-#'
-#' @return a vector containing derivatives of \code{f_x}
-#'
-#' @export
+# Calculate discrete derivatives
 get_deriv <- function(f_x, x) {
     f_prime <- pracma::gradient(f_x, x)
 
@@ -53,14 +46,7 @@ get_deriv <- function(f_x, x) {
 }
 
 
-#' Check whether vector is convex
-#'
-#' @param f_x a vector of f(x)
-#' @param x a vector of x
-#'
-#' @return a logical vector indicating \code{f_x} is convex on each \code{x}
-#'
-#' @export
+# Check whether vector is convex
 is.convex <- function(f_x, x) {
     first_deriv <- get_deriv(f_x, x)
     second_deriv <- get_deriv(first_deriv, x)
@@ -71,14 +57,7 @@ is.convex <- function(f_x, x) {
 }
 
 
-#' Get design points
-#'
-#' @param Lt a list of vectors containing time points for each curve
-#' @param work.grid a vector containing sorted unique grids
-#'
-#' @return a matrix containing 2 columns (each row is a point which is a pair of observed timepoints)
-#'
-#' @export
+# Get design points
 get_design_index <- function(Lt, work.grid) {
     N <- length(work.grid)   # length of unique grid points
     design_mat <- matrix(0, N, N)
