@@ -146,15 +146,31 @@ robfpca.partial <- function(X,
 }
 
 
-print.robfpca <- function(robfpca.obj) {
-    cat("dd")
+
+#' Print a robfpca.partial object
+#'
+#' @param x a \code{robfpca.partial} object from \code{robfpca.partial()}
+#' @param ... Not used
+#'
+#' @method print robfpca.partial
+#'
+#' @export
+print.robfpca.partial <- function(x, ...) {
+    obj <- x
+    cat(paste0("Robust functional principal component analysis for partially observed functional data, ",
+               class(obj), "object\n"))
+    cat(
+        paste0("The number of functional principal components selected is: ", obj$K,
+               "and\n its proportion of variance explained is: ", round(obj$PVE, 3))
+    )
 
 }
 
 
+
 #' Predict FPC scores, reconstruction and completion for a new data
 #'
-#' @param object a \code{robfpca} object from \code{robfpca.partial()}
+#' @param object a \code{robfpca.partial} object from \code{robfpca.partial()}
 #' @param type "score" gives FPC scores, "reconstr" gives reconstruction of each curves, and "comp" gives completion of each curves.
 #' @param newdata a n x p matrix containing n curves observed at p timepoints
 #' @param K a number of FPCs
@@ -223,6 +239,6 @@ predict.robfpca.partial <- function(object,
 }
 
 
-plot.robfpca <- function(robfpca.obj) {
+plot.robfpca.partial <- function(object) {
 
 }
