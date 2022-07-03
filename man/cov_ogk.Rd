@@ -2,7 +2,7 @@
 % Please edit documentation in R/cov_ogk.R
 \name{cov_ogk}
 \alias{cov_ogk}
-\title{Robust covariance function esimation based on modified Orthogonalized Gnanadesikan-Kettenring (OGK) estimation for partially observed functional data}
+\title{Robust covariance function esimation for partially observed functional data}
 \usage{
 cov_ogk(
   X,

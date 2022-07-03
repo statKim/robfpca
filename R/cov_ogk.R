@@ -1,4 +1,4 @@
-#' Robust covariance function esimation based on modified Orthogonalized Gnanadesikan-Kettenring (OGK) estimation for partially observed functional data
+#' Robust covariance function esimation for partially observed functional data
 #'
 #' The location and scale functions are computed via pointwise M-estimator, and the covariance function is obtained via robust pairwise computation based on Orthogonalized Gnanadesikan-Kettenring (OGK) estimation.
 #' Additionally, bivariate Nadaraya-Watson smoothing is applied for smoothed covariance surfaces.

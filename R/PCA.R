@@ -126,20 +126,23 @@ funPCA <- function(Lt,
 #' @param K a number of PCs for reconstruction
 #' @param ... Not used
 #'
-#' @importFrom stats predict
+#' @method predict funPCA
 #'
 #' @export
 predict.funPCA <- function(object, newdata = NULL, K = NULL, ...) {
-    funPCA.obj <- object
-    if (is.null(K)) {
-        K <- funPCA.obj$K
+    if (class(object) != "funPCA") {
+        stop("Check the class of input object! class name 'funPCA' is only supported!")
     }
-    if (K > funPCA.obj$K) {
+
+    if (is.null(K)) {
+        K <- object$K
+    }
+    if (K > object$K) {
         stop(paste0("Selected number of PCs from funPCA object is less than K."))
     }
 
     if (is.null(newdata)) {
-        pc.score <- matrix(funPCA.obj$pc.score[, 1:K],
+        pc.score <- matrix(object$pc.score[, 1:K],
                            ncol = K)
         n <- nrow(pc.score)
     } else {
@@ -151,18 +154,18 @@ predict.funPCA <- function(object, newdata = NULL, K = NULL, ...) {
         for (i in 1:n) {
             pc.score[i, ] <- get_CE_score(Lt[[i]],
                                           Ly[[i]],
-                                          funPCA.obj$mu,
-                                          funPCA.obj$cov,
-                                          funPCA.obj$sig2,
-                                          funPCA.obj$eig.obj,
+                                          object$mu,
+                                          object$cov,
+                                          object$sig2,
+                                          object$eig.obj,
                                           K,
-                                          funPCA.obj$work.grid)
+                                          object$work.grid)
         }
     }
 
-    mu <- matrix(rep(funPCA.obj$mu, n),
+    mu <- matrix(rep(object$mu, n),
                  nrow = n, byrow = TRUE)
-    eig.fun <- matrix(funPCA.obj$eig.fun[, 1:K],
+    eig.fun <- matrix(object$eig.fun[, 1:K],
                       ncol = K)
     pred <- mu + pc.score %*% t(eig.fun)   # reconstructed curves
 

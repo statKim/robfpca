@@ -140,13 +140,89 @@ robfpca.partial <- function(X,
     fpca.obj$data <- X   # Input data matrix
     fpca.obj$cov.obj <- cov.obj   # Object of covariance estimation
 
-    class(fpca.obj) <- "robfpca"
+    class(fpca.obj) <- "robfpca.partial"
 
     return(fpca.obj)
 }
 
 
+print.robfpca <- function(robfpca.obj) {
+    cat("dd")
 
-plot.robfpca <- function(){
+}
+
+
+#' Predict FPC scores, reconstruction and completion for a new data
+#'
+#' @param object a \code{robfpca} object from \code{robfpca.partial()}
+#' @param type "score" gives FPC scores, "reconstr" gives reconstruction of each curves, and "comp" gives completion of each curves.
+#' @param newdata a n x p matrix containing n curves observed at p timepoints
+#' @param K a number of FPCs
+#' @param ... Not used
+#'
+#' @method predict robfpca.partial
+#'
+#' @export
+predict.robfpca.partial <- function(object,
+                                    type = c("score","reconstr","comp"),
+                                    newdata = NULL,
+                                    K = NULL, ...) {
+    if (class(object) != "robfpca.partial") {
+        stop("Check the class of input object! class name 'robfpca.partial' is only supported!")
+    }
+
+    if (is.null(K)) {
+        K <- object$K
+    }
+    if (K > object$K) {
+        stop(paste0("Selected number of PCs from robfpca object is less than K."))
+    }
+
+    # Prediction of FPC scores
+    if (is.null(newdata)) {
+        pc.score <- matrix(object$pc.score[, 1:K],
+                           ncol = K)
+        n <- nrow(pc.score)
+        newdata <- object$data
+    } else {
+        Lt <- newdata$Lt
+        Ly <- newdata$Ly
+        n <- length(Lt)
+
+        pc.score <- matrix(NA, n, K)
+        for (i in 1:n) {
+            pc.score[i, ] <- get_CE_score(Lt[[i]],
+                                          Ly[[i]],
+                                          object$mu,
+                                          object$cov,
+                                          object$sig2,
+                                          object$eig.obj,
+                                          K,
+                                          object$work.grid)
+        }
+    }
+
+    if (type == "score") {
+        # Predicted FPC score
+        pred <- pc.score
+    } else {
+        # Reconstruction
+        mu <- matrix(rep(object$mu, n),
+                     nrow = n, byrow = TRUE)
+        eig.fun <- matrix(object$eig.fun[, 1:K],
+                          ncol = K)
+        pred <- mu + pc.score %*% t(eig.fun)   # reconstructed curves
+
+        # Completion
+        if (type == "comp") {
+            pred[which(is.na(newdata), arr.ind = TRUE)] <- NA
+        }
+    }
+
+    return(pred)
+}
+
+
+plot.robfpca <- function(robfpca.obj) {
 
 }
