@@ -51,7 +51,6 @@ x.list <- sim_kraus(n = 100,
                     type = "partial",
                     num.comp = 5,
                     out.prop = 0.2,
-                    out.type = 1,
                     dist = "normal")
 x <- list2matrix(x.list)
 matplot(t(x), type = "l")

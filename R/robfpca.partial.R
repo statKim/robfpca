@@ -40,6 +40,7 @@
 #' \item{cov.obj}{the object from cov_ogk(). See ?cov_ogk().}
 #'
 #' @examples
+#' ### Generate example data
 #' set.seed(100)
 #' x.list <- sim_delaigle(n = 100,
 #'                        type = "partial",
@@ -47,15 +48,33 @@
 #'                        out.type = 1,
 #'                        dist = "normal")
 #' x <- list2matrix(x.list)
+#' matplot(t(x), type = "l")
 #'
-#' # Given bandwidth
+#' ### Robust FPCA for partially observed functional data
+#' ### Given bandwidth = 0.1
 #' fpca.obj <- robfpca.partial(x,
 #'                             type = "huber",
 #'                             PVE = 0.95,
 #'                             bw = 0.1)
 #' fpc.score <- fpca.obj$pc.score
 #'
-#' # Using 5-fold cross-validation
+#' # ### Give same result in the above
+#' # work.grid <- seq(0, 1, length.out = 51)
+#' # cov.obj <- cov_ogk(x,
+#' #                    type = "huber",
+#' #                    bw = 0.1)
+#' # fpca.obj <- funPCA(Lt = x.list$Lt,
+#' #                    Ly = x.list$Ly,
+#' #                    mu = cov.obj$mean,
+#' #                    cov = cov.obj$cov,
+#' #                    work.grid = work.grid,
+#' #                    PVE = 0.95)
+#' # fpc.score <- fpca.obj$pc.score
+#'
+#'
+#' ### Robust FPCA for partially observed functional data
+#' ### Choose bandwidth using 5-fold cross-validation
+#' set.seed(1000)
 #' bw_cand <- seq(0.02, 0.3, length.out = 10)
 #' fpca.obj <- robfpca.partial(x,
 #'                             type = "huber",
@@ -65,6 +84,51 @@
 #'                                             K = 5,
 #'                                             ncores = 1))
 #' fpc.score <- fpca.obj$pc.score
+#'
+#' # ### Give same result in the above
+#' # set.seed(1000)
+#' # work.grid <- seq(0, 1, length.out = 51)
+#' # bw_cand <- seq(0.02, 0.3, length.out = 10)
+#' # cov.cv.obj <- cv.cov_ogk(x,
+#' #                          K = 5,
+#' #                          bw_cand = bw_cand,
+#' #                          MM = TRUE,
+#' #                          type = 'huber')
+#' # print(cov.cv.obj$selected_bw)
+#' # cov.obj <- cov_ogk(x,
+#' #                    type = "huber",
+#' #                    bw = cov.cv.obj$selected_bw)
+#' # fpca.obj <- funPCA(Lt = x.list$Lt,
+#' #                    Ly = x.list$Ly,
+#' #                    mu = cov.obj$mean,
+#' #                    cov = cov.obj$cov,
+#' #                    work.grid = work.grid,
+#' #                    PVE = 0.95)
+#' # fpc.score <- fpca.obj$pc.score
+#'
+#'
+#' new_data <- x[1:5, ]   # example of new data
+#'
+#' ### Predict FPC score
+#' pred_score <- predict(fpca.obj, type = "score", newdata = new_data)
+#' pred_score
+#'
+#' ### Reconstruction
+#' pred_reconstr <- predict(fpca.obj, type = "reconstr", newdata = new_data)
+#' pred_reconstr
+#' par(mfrow = c(1, 2))
+#' matplot(t(new_data), type = "l",
+#'         xlab = "t", ylab = "", main = "Observed curves")
+#' matplot(t(pred_reconstr), type = "l",
+#'         xlab = "t", ylab = "", main = "Reconstructed curves")
+#'
+#' ### Completion
+#' pred_comp <- predict(fpca.obj, type = "comp", newdata = new_data)
+#' pred_comp
+#' matplot(t(new_data), type = "l",
+#'         xlab = "t", ylab = "", main = "Completion")
+#' matlines(t(pred_comp), type = "l", lty = 1, lwd = 2)
+#'
 #'
 #' @references
 #' \cite{Park, Y., Kim, H., & Lim, Y. (2022+). Functional principal component analysis for partially observed elliptical process, Under review.}
@@ -157,13 +221,11 @@ robfpca.partial <- function(X,
 #' @export
 print.robfpca.partial <- function(x, ...) {
     obj <- x
-    cat(paste0("Robust functional principal component analysis for partially observed functional data, ",
-               class(obj), "object\n"))
-    cat(
-        paste0("The number of functional principal components selected is: ", obj$K,
-               "and\n its proportion of variance explained is: ", round(obj$PVE, 3))
-    )
-
+    cat("Robust FPCA for partially observed functional data\n")
+    cat(paste0("Class: ", class(obj), "\n"))
+    cat(paste0("The number of functional principal components selected is: ",
+               obj$K, "\n"))
+    cat(paste0("The proportion of variance explained is: ", round(obj$PVE, 3)))
 }
 
 
@@ -177,6 +239,47 @@ print.robfpca.partial <- function(x, ...) {
 #' @param ... Not used
 #'
 #' @method predict robfpca.partial
+#'
+#' @examples
+#' ### Generate example data
+#' set.seed(100)
+#' x.list <- sim_delaigle(n = 100,
+#'                        type = "partial",
+#'                        out.prop = 0.2,
+#'                        out.type = 1,
+#'                        dist = "normal")
+#' x <- list2matrix(x.list)
+#' matplot(t(x), type = "l")
+#'
+#' ### Robust FPCA for partially observed functional data
+#' ### Given bandwidth = 0.1
+#' fpca.obj <- robfpca.partial(x,
+#'                             type = "huber",
+#'                             PVE = 0.95,
+#'                             bw = 0.1)
+#' fpc.score <- fpca.obj$pc.score
+#'
+#' new_data <- x[1:5, ]   # example of new data
+#'
+#' ### Predict FPC score
+#' pred_score <- predict(fpca.obj, type = "score", newdata = new_data)
+#' pred_score
+#'
+#' ### Reconstruction
+#' pred_reconstr <- predict(fpca.obj, type = "reconstr", newdata = new_data)
+#' pred_reconstr
+#' par(mfrow = c(1, 2))
+#' matplot(t(new_data), type = "l",
+#'         xlab = "t", ylab = "", main = "Observed curves")
+#' matplot(t(pred_reconstr), type = "l",
+#'         xlab = "t", ylab = "", main = "Reconstructed curves")
+#'
+#' ### Completion
+#' pred_comp <- predict(fpca.obj, type = "comp", newdata = new_data)
+#' pred_comp
+#' matplot(t(new_data), type = "l",
+#'         xlab = "t", ylab = "", main = "Completion")
+#' matlines(t(pred_comp), type = "l", lty = 1, lwd = 2)
 #'
 #' @export
 predict.robfpca.partial <- function(object,
@@ -201,8 +304,9 @@ predict.robfpca.partial <- function(object,
         n <- nrow(pc.score)
         newdata <- object$data
     } else {
-        Lt <- newdata$Lt
-        Ly <- newdata$Ly
+        newdata_list <- matrix2list(newdata, object$work.grid)
+        Lt <- newdata_list$Lt
+        Ly <- newdata_list$Ly
         n <- length(Lt)
 
         pc.score <- matrix(NA, n, K)
@@ -231,7 +335,7 @@ predict.robfpca.partial <- function(object,
 
         # Completion
         if (type == "comp") {
-            pred[which(is.na(newdata), arr.ind = TRUE)] <- NA
+            pred[which(!is.na(newdata), arr.ind = TRUE)] <- NA
         }
     }
 
@@ -239,6 +343,13 @@ predict.robfpca.partial <- function(object,
 }
 
 
-plot.robfpca.partial <- function(object) {
+
+#' Plot robfpca.partial object
+#'
+#' @param x a \code{robfpca.partial} object from \code{robfpca.partial()}
+#' @param ... Not used
+#'
+#' @export
+plot.robfpca.partial <- function(x, ...) {
 
 }

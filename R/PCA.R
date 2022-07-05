@@ -24,6 +24,37 @@
 #' \item{cov}{a covariance function}
 #' \item{sig2}{a noise variance}
 #'
+#' @examples
+#' ### Generate example data
+#' set.seed(100)
+#' x.list <- sim_delaigle(n = 100,
+#'                        type = "partial",
+#'                        out.prop = 0.2,
+#'                        dist = "normal")
+#' x <- list2matrix(x.list)
+#'
+#' ### Estimate robust covariance function
+#' work.grid <- seq(0, 1, length.out = 51)
+#' cov.obj <- cov_ogk(x,
+#'                    type = "huber",
+#'                    bw = 0.1)
+#'
+#' ### Functional principal component analysis
+#' fpca.obj <- funPCA(Lt = x.list$Lt,
+#'                    Ly = x.list$Ly,
+#'                    mu = cov.obj$mean,
+#'                    cov = cov.obj$cov,
+#'                    work.grid = work.grid,
+#'                    PVE = 0.95)
+#' fpc.score <- fpca.obj$pc.score
+#'
+#' # ### Give same result in the above
+#' # fpca.obj <- robfpca.partial(x,
+#' #                             type = "huber",
+#' #                             PVE = 0.95,
+#' #                             bw = 0.1)
+#' # fpc.score <- fpca.obj$pc.score
+#'
 #' @export
 funPCA <- function(Lt,
                    Ly,
@@ -122,7 +153,7 @@ funPCA <- function(Lt,
 #' newdata should be a list containing Lt and Ly.
 #'
 #' @param object a \code{funPCA} object from \code{funPCA()}
-#' @param newdata a new data
+#' @param newdata a list containing \code{Lt} and \code{Ly}
 #' @param K a number of PCs for reconstruction
 #' @param ... Not used
 #'

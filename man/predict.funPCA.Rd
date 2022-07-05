@@ -10,7 +10,7 @@ newdata should be a list containing Lt and Ly.}
 \arguments{
 \item{object}{a \code{funPCA} object from \code{funPCA()}}
 
-\item{newdata}{a new data}
+\item{newdata}{a list containing \code{Lt} and \code{Ly}}
 
 \item{K}{a number of PCs for reconstruction}
 

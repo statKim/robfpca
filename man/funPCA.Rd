@@ -40,3 +40,35 @@ a list contatining as follows:
 \description{
 FPCA is performed via PACE (Principal Analysis via Conditional Expectation) proposed by Yao et al. (2005).
 }
+\examples{
+### Generate example data
+set.seed(100)
+x.list <- sim_delaigle(n = 100,
+                       type = "partial",
+                       out.prop = 0.2,
+                       dist = "normal")
+x <- list2matrix(x.list)
+
+### Estimate robust covariance function
+work.grid <- seq(0, 1, length.out = 51)
+cov.obj <- cov_ogk(x,
+                   type = "huber",
+                   bw = 0.1)
+
+### Functional principal component analysis
+fpca.obj <- funPCA(Lt = x.list$Lt,
+                   Ly = x.list$Ly,
+                   mu = cov.obj$mean,
+                   cov = cov.obj$cov,
+                   work.grid = work.grid,
+                   PVE = 0.95)
+fpc.score <- fpca.obj$pc.score
+
+# ### Give same result in the above
+# fpca.obj <- robfpca.partial(x,
+#                             type = "huber",
+#                             PVE = 0.95,
+#                             bw = 0.1)
+# fpc.score <- fpca.obj$pc.score
+
+}

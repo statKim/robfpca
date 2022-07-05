@@ -54,10 +54,12 @@ n <- 100
 x.list <- sim_corr(n = n,
                    type = "partial",
                    out.prop = 0.2,
-                   out.type = 1,
                    dist = "normal",
                    dist.mat = dist.mat[1:n, 1:n])
 x <- list2matrix(x.list)
 matplot(t(x), type = "l")
 
+}
+\references{
+\cite{Kraus, D. (2015). Components and completion of partially observed functional data. Journal of the Royal Statistical Society: Series B: Statistical Methodology, 777-801.}
 }

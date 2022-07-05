@@ -31,7 +31,6 @@
 #' x.list <- sim_delaigle(n = 100,
 #'                        type = "partial",
 #'                        out.prop = 0.2,
-#'                        out.type = 1,
 #'                        dist = "normal")
 #' x <- list2matrix(x.list)
 #' cov.obj <- cov_ogk(x,
@@ -474,33 +473,27 @@ cov_gk <- function(X,
 #' x.list <- sim_delaigle(n = 100,
 #'                        type = "partial",
 #'                        out.prop = 0.2,
-#'                        out.type = 1,
 #'                        dist = "normal")
 #' x <- list2matrix(x.list)
 #'
 #' # 5-fold CV for bivariate smoothing
 #' # You can improve the computaion speed by setting "ncores" option.
 #' bw_cand = seq(0.01, 0.1, length.out = 10)
-#' cov.obj.cv <- cv.cov_ogk(x,
+#' cov.cv.obj <- cv.cov_ogk(x,
 #'                          type = 'huber',
 #'                          bw_cand = bw_cand,
 #'                          K = 5,
 #'                          ncores = 1)
-#' print(cov.obj.cv$selected_bw)
+#' print(cov.cv.obj$selected_bw)
 #'
 #' # Robust smoothed covariance using selected bw from cross-validation
 #' cov.obj <- cov_ogk(x,
 #'                    type = "huber",
-#'                    smooth = TRUE,
-#'                    bw = cov.obj.cv$selected_bw)
+#'                    bw = cov.cv.obj$selected_bw)
 #' mu.ogk.sm <- cov.obj$mean
 #' cov.ogk.sm <- cov.obj$cov
 #' noise.ogk.sm <- cov.obj$noise.var
 #'
-#' @references
-#' \cite{Kim, H., Park, Y., & Lim, Y. (2022+). Robust principal component analysis and its application for partially observed functional data, Submitted.}
-#'
-#' @import Rcpp
 #' @importFrom foreach %dopar% foreach
 #' @importFrom dplyr %>% group_by summarise
 #' @importFrom doParallel registerDoParallel
@@ -529,10 +522,12 @@ cv.cov_ogk <- function(X,
 
   # bandwidth candidates
   if (is.null(bw_cand)) {
-    a <- min(gr)
-    b <- max(gr)
-    bw_cand <- seq(0.01, 0.3, length.out = 10)
-    # bw_cand <- 10^seq(-2, 0, length.out = 10) * (b - a)/3
+    bw_min <- max(diff(gr)) / 2
+    bw_max <- (max(gr) - min(gr)) / 3
+    if (bw_min >= bw_max) {
+      bw_max <- (max(gr) - min(gr)) / 2
+    }
+    bw_cand <- seq(bw_min, bw_max, length.out = 10)
   }
 
   # obtain the raw covariance (Not smoothed)

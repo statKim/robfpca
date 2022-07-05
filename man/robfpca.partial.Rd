@@ -72,6 +72,7 @@ The options of \code{cv_optns}:
 }
 }
 \examples{
+### Generate example data
 set.seed(100)
 x.list <- sim_delaigle(n = 100,
                        type = "partial",
@@ -79,15 +80,33 @@ x.list <- sim_delaigle(n = 100,
                        out.type = 1,
                        dist = "normal")
 x <- list2matrix(x.list)
+matplot(t(x), type = "l")
 
-# Given bandwidth
+### Robust FPCA for partially observed functional data
+### Given bandwidth = 0.1
 fpca.obj <- robfpca.partial(x,
                             type = "huber",
                             PVE = 0.95,
                             bw = 0.1)
 fpc.score <- fpca.obj$pc.score
 
-# Using 5-fold cross-validation
+# ### Give same result in the above
+# work.grid <- seq(0, 1, length.out = 51)
+# cov.obj <- cov_ogk(x,
+#                    type = "huber",
+#                    bw = 0.1)
+# fpca.obj <- funPCA(Lt = x.list$Lt,
+#                    Ly = x.list$Ly,
+#                    mu = cov.obj$mean,
+#                    cov = cov.obj$cov,
+#                    work.grid = work.grid,
+#                    PVE = 0.95)
+# fpc.score <- fpca.obj$pc.score
+
+
+### Robust FPCA for partially observed functional data
+### Choose bandwidth using 5-fold cross-validation
+set.seed(1000)
 bw_cand <- seq(0.02, 0.3, length.out = 10)
 fpca.obj <- robfpca.partial(x,
                             type = "huber",
@@ -97,6 +116,51 @@ fpca.obj <- robfpca.partial(x,
                                             K = 5,
                                             ncores = 1))
 fpc.score <- fpca.obj$pc.score
+
+# ### Give same result in the above
+# set.seed(1000)
+# work.grid <- seq(0, 1, length.out = 51)
+# bw_cand <- seq(0.02, 0.3, length.out = 10)
+# cov.cv.obj <- cv.cov_ogk(x,
+#                          K = 5,
+#                          bw_cand = bw_cand,
+#                          MM = TRUE,
+#                          type = 'huber')
+# print(cov.cv.obj$selected_bw)
+# cov.obj <- cov_ogk(x,
+#                    type = "huber",
+#                    bw = cov.cv.obj$selected_bw)
+# fpca.obj <- funPCA(Lt = x.list$Lt,
+#                    Ly = x.list$Ly,
+#                    mu = cov.obj$mean,
+#                    cov = cov.obj$cov,
+#                    work.grid = work.grid,
+#                    PVE = 0.95)
+# fpc.score <- fpca.obj$pc.score
+
+
+new_data <- x[1:5, ]   # example of new data
+
+### Predict FPC score
+pred_score <- predict(fpca.obj, type = "score", newdata = new_data)
+pred_score
+
+### Reconstruction
+pred_reconstr <- predict(fpca.obj, type = "reconstr", newdata = new_data)
+pred_reconstr
+par(mfrow = c(1, 2))
+matplot(t(new_data), type = "l",
+        xlab = "t", ylab = "", main = "Observed curves")
+matplot(t(pred_reconstr), type = "l",
+        xlab = "t", ylab = "", main = "Reconstructed curves")
+
+### Completion
+pred_comp <- predict(fpca.obj, type = "comp", newdata = new_data)
+pred_comp
+matplot(t(new_data), type = "l",
+        xlab = "t", ylab = "", main = "Completion")
+matlines(t(pred_comp), type = "l", lty = 1, lwd = 2)
+
 
 }
 \references{

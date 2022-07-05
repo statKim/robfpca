@@ -27,13 +27,13 @@
 #' x.list <- sim_delaigle(n = 100,
 #'                        type = "partial",
 #'                        out.prop = 0.2,
-#'                        out.type = 1,
 #'                        dist = "normal")
 #' x <- list2matrix(x.list)
 #' matplot(t(x), type = "l")
 #'
 #' @references
 #' \cite{Delaigle, A., Hall, P., Huang, W., & Kneip, A. (2021). Estimating the covariance of fragmented and other related types of functional data. Journal of the American Statistical Association, 116(535), 1383-1401.}
+#' \cite{Kraus, D. (2015). Components and completion of partially observed functional data. Journal of the Royal Statistical Society: Series B: Statistical Methodology, 777-801.}
 #'
 #' @export
 sim_delaigle <- function(n = 100,

@@ -59,7 +59,6 @@ set.seed(100)
 x.list <- sim_delaigle(n = 100,
                        type = "partial",
                        out.prop = 0.2,
-                       out.type = 1,
                        dist = "normal")
 x <- list2matrix(x.list)
 cov.obj <- cov_ogk(x,

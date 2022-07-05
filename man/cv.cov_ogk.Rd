@@ -39,30 +39,25 @@ set.seed(100)
 x.list <- sim_delaigle(n = 100,
                        type = "partial",
                        out.prop = 0.2,
-                       out.type = 1,
                        dist = "normal")
 x <- list2matrix(x.list)
 
 # 5-fold CV for bivariate smoothing
 # You can improve the computaion speed by setting "ncores" option.
 bw_cand = seq(0.01, 0.1, length.out = 10)
-cov.obj.cv <- cv.cov_ogk(x,
+cov.cv.obj <- cv.cov_ogk(x,
                          type = 'huber',
                          bw_cand = bw_cand,
                          K = 5,
                          ncores = 1)
-print(cov.obj.cv$selected_bw)
+print(cov.cv.obj$selected_bw)
 
 # Robust smoothed covariance using selected bw from cross-validation
 cov.obj <- cov_ogk(x,
                    type = "huber",
-                   smooth = TRUE,
-                   bw = cov.obj.cv$selected_bw)
+                   bw = cov.cv.obj$selected_bw)
 mu.ogk.sm <- cov.obj$mean
 cov.ogk.sm <- cov.obj$cov
 noise.ogk.sm <- cov.obj$noise.var
 
-}
-\references{
-\cite{Kim, H., Park, Y., & Lim, Y. (2022+). Robust principal component analysis and its application for partially observed functional data, Submitted.}
 }
