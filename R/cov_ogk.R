@@ -234,7 +234,7 @@ cov_gk <- function(X,
                    MM = FALSE,
                    cor = FALSE,
                    smooth = FALSE,
-                   psd = TRUE,
+                   psd = FALSE,
                    # noise.var = FALSE,
                    df = 3) {
   p <- ncol(X)
@@ -318,13 +318,21 @@ cov_gk <- function(X,
         } else if (type == "tdist") {   # MLE of t-distribution
           if (cor == TRUE) {
             # Scaling to obtain correlation matrix
-            disp <- apply(X[, c(i,j)], 2, function(col){
-              MASS::fitdistr(col[ind_not_NA],
-                             densfun = "t",
-                             df = df)$estimate[2]
-            })
-            z1 <- X[, i]/disp[1] + X[, j]/disp[2]
-            z2 <- X[, i]/disp[1] - X[, j]/disp[2]
+            obj1 <- MASS::fitdistr(X[ind_not_NA, i],
+                                   densfun = "t",
+                                   df = df)
+            obj2 <- MASS::fitdistr(X[ind_not_NA, j],
+                                   densfun = "t",
+                                   df = df)
+            z1 <- (X[, i] - obj1$estimate[1])/obj1$estimate[2] + (X[, j] - obj2$estimate[1])/obj2$estimate[2]
+            z2 <- (X[, i] - obj1$estimate[1])/obj1$estimate[2] - (X[, j] - obj2$estimate[1])/obj2$estimate[2]
+            # disp <- apply(X[, c(i,j)], 2, function(col){
+            #   MASS::fitdistr(col[ind_not_NA],
+            #                  densfun = "t",
+            #                  df = df)$estimate[2]
+            # })
+            # z1 <- X[, i]/disp[1] + X[, j]/disp[2]
+            # z2 <- X[, i]/disp[1] - X[, j]/disp[2]
           } else {
             # Not scaling
             z1 <- X[, i] + X[, j]

@@ -12,7 +12,7 @@ library(robfpca)
 This is the R package `robfpca` implementing the robust functional principal component analysis (FPCA) for partially observed functional data.
 
 The proposed robust FPCA method implements FPCA based on the conditional expectation for the robust covariance function estimate.
-The robust covariance function is estimated using the modified Gnanadesikan-Kettenring (GK) identity based on M-estimator, and then orthogonalized.
+The robust covariance function is obtained via robust pairwise computation based on Orthogonalized Gnanadesikan-Kettenring (OGK) estimation.
 
 
 ## Installation
@@ -30,11 +30,11 @@ library(robfpca)
 
 # Generate partially observed curves from heavy-tailed distribution
 set.seed(46)
-x <- sim_delaigle(n = 100,
-                  type = "partial",
-                  dist = "tdist")
-X <- list2matrix(x)   # transform list to matrix
-gr <- seq(0, 1, length.out = 51)   # observed timepoints
+X.list <- sim_delaigle(n = 100,
+                       type = "partial",
+                       dist = "tdist")
+X <- list2matrix(X.list)   # transform list to matrix
+gr <- seq(0, 1, length.out = ncol(X))   # observed timepoints
 matplot(gr, t(X), 
         type = "l",
         xlab = "t", ylab = "X(t)")
