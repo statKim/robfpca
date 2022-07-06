@@ -44,7 +44,9 @@
 #'
 #' \cite{Maronna, R. A., & Zamar, R. H. (2002). Robust estimates of location and dispersion for high-dimensional datasets. Technometrics, 44(4), 307-317.}
 #'
-#' @import RobStatTM stats
+#' @import stats
+#' @importFrom MASS fitdistr
+#' @importFrom RobStatTM locScaleM
 #'
 #' @export
 ### OGK covariance estimation
@@ -64,13 +66,18 @@ cov_ogk <- function(X,
   p <- ncol(X)   # number of timepoints
 
   # Step 2. correlation matrix
-  obj.gk <- cov_gk(X,
-                   type = type,
-                   MM = MM,
-                   cor = TRUE,
-                   smooth = FALSE,
-                   psd = FALSE,
-                   df = df)
+  # - Using Rcpp function (It gives same result with the below "cov_gk()".)
+  obj.gk <- cor_gk_cpp(X,
+                       type = type,
+                       MM = MM,
+                       df = df)
+  # obj.gk <- cov_gk(X,
+  #                  type = type,
+  #                  MM = MM,
+  #                  cor = TRUE,
+  #                  smooth = FALSE,
+  #                  psd = FALSE,
+  #                  df = df)
   U <- obj.gk$cov
   rob.disp <- obj.gk$disp
 
@@ -92,12 +99,12 @@ cov_ogk <- function(X,
   Gamma <- matrix(0, p, p)
   for (i in 1:p) {
     if (type %in% c("huber","bisquare")) {
-      tmp <- locScaleM(Z[, i],
-                       psi = type,
-                       eff = 0.95,
-                       maxit = 50,
-                       tol = 1e-04,
-                       na.rm = TRUE)
+      tmp <- RobStatTM::locScaleM(Z[, i],
+                                  psi = type,
+                                  eff = 0.95,
+                                  maxit = 50,
+                                  tol = 1e-04,
+                                  na.rm = TRUE)
       nu[i] <- tmp$mu
       Gamma[i, i] <- tmp$disper^2
     } else if (type == "tdist") {
@@ -244,7 +251,7 @@ cov_gk <- function(X,
   rob.disp <- rep(0, p)
   for (i in 1:p) {
     if (type %in% c("huber","bisquare")) {
-      obj <- locScaleM(X[, i], psi = type, na.rm = TRUE)
+      obj <- RobStatTM::locScaleM(X[, i], psi = type, na.rm = TRUE)
       rob.mean[i] <- obj$mu
       rob.disp[i] <- obj$disper
     } else if (type == "tdist") {
@@ -280,8 +287,8 @@ cov_gk <- function(X,
             # z2 <- X[, i]/disp[1] - X[, j]/disp[2]
 
             # Scaling to obtain correlation matrix
-            obj1 <- locScaleM(X[ind_not_NA, i], psi = type)
-            obj2 <- locScaleM(X[ind_not_NA, j], psi = type)
+            obj1 <- RobStatTM::locScaleM(X[ind_not_NA, i], psi = type)
+            obj2 <- RobStatTM::locScaleM(X[ind_not_NA, j], psi = type)
             z1 <- (X[, i] - obj1$mu)/obj1$disper + (X[, j] - obj2$mu)/obj2$disper
             z2 <- (X[, i] - obj1$mu)/obj1$disper - (X[, j] - obj2$mu)/obj2$disper
 
@@ -305,13 +312,13 @@ cov_gk <- function(X,
             }
           } else {
             # Default, using "RobStatTM" package
-            z1.disp <- locScaleM(z1[ind_not_NA],
-                                 psi = type)$disper
+            z1.disp <- RobStatTM::locScaleM(z1[ind_not_NA],
+                                            psi = type)$disper
             if (sd(z2[ind_not_NA]) < 10^(-10)) {
               z2.disp <- 0
             } else {
-              z2.disp <- locScaleM(z2[ind_not_NA],
-                                   psi = type)$disper
+              z2.disp <- RobStatTM::locScaleM(z2[ind_not_NA],
+                                              psi = type)$disper
             }
           }
 

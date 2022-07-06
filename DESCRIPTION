@@ -20,7 +20,6 @@ RoxygenNote: 7.1.2
 Imports: 
     Rcpp,
     stats,
-    MASS,
     dplyr,
     tidyr,
     doParallel,
@@ -30,14 +29,15 @@ Imports:
     fields,
     mvtnorm,
     LaplacesDemon,
-    RobStatTM,
     lqmm
 Suggests: 
     GA,
     knitr,
     rmarkdown
 Depends: 
-    R (>= 4.0.0)
+    R (>= 4.0.0),
+    RobStatTM,
+    MASS
 VignetteBuilder: knitr
 LinkingTo: 
     Rcpp

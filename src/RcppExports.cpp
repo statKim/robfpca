@@ -11,7 +11,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // fitdistr_cpp
-Rcpp::List fitdistr_cpp(Rcpp::NumericVector x, Rcpp::String densfun, int df);
+Rcpp::NumericVector fitdistr_cpp(Rcpp::NumericVector x, Rcpp::String densfun, int df);
 RcppExport SEXP _robfpca_fitdistr_cpp(SEXP xSEXP, SEXP densfunSEXP, SEXP dfSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -37,7 +37,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // quantile_cpp
-Rcpp::List quantile_cpp(Rcpp::NumericVector x, double probs);
+double quantile_cpp(Rcpp::NumericVector x, double probs);
 RcppExport SEXP _robfpca_quantile_cpp(SEXP xSEXP, SEXP probsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -48,11 +48,38 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_sigma2_rob_cpp
+double get_sigma2_rob_cpp(Rcpp::NumericVector v);
+RcppExport SEXP _robfpca_get_sigma2_rob_cpp(SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_sigma2_rob_cpp(v));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cor_gk_cpp
+Rcpp::List cor_gk_cpp(Rcpp::NumericMatrix X, Rcpp::String type, bool MM, int df);
+RcppExport SEXP _robfpca_cor_gk_cpp(SEXP XSEXP, SEXP typeSEXP, SEXP MMSEXP, SEXP dfSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< bool >::type MM(MMSEXP);
+    Rcpp::traits::input_parameter< int >::type df(dfSEXP);
+    rcpp_result_gen = Rcpp::wrap(cor_gk_cpp(X, type, MM, df));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_fitdistr_cpp", (DL_FUNC) &_robfpca_fitdistr_cpp, 3},
     {"_robfpca_locScaleM_cpp", (DL_FUNC) &_robfpca_locScaleM_cpp, 3},
     {"_robfpca_quantile_cpp", (DL_FUNC) &_robfpca_quantile_cpp, 2},
+    {"_robfpca_get_sigma2_rob_cpp", (DL_FUNC) &_robfpca_get_sigma2_rob_cpp, 1},
+    {"_robfpca_cor_gk_cpp", (DL_FUNC) &_robfpca_cor_gk_cpp, 4},
     {NULL, NULL, 0}
 };
 

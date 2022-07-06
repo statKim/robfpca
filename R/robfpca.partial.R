@@ -137,7 +137,7 @@
 #'
 #' \cite{Yao, F., Müller, H. G., & Wang, J. L. (2005). Functional data analysis for sparse longitudinal data. Journal of the American statistical association, 100(470), 577-590.}
 #'
-#' @import RobStatTM stats
+#' @import stats
 #'
 #' @export
 robfpca.partial <- function(X,
