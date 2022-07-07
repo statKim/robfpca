@@ -36,6 +36,82 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mad
+double mad(Rcpp::NumericVector x);
+RcppExport SEXP _robfpca_mad(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(mad(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mscale_cpp
+Rcpp::NumericVector mscale_cpp(Rcpp::NumericVector u, double delta, double tuning_chi, Rcpp::String family);
+RcppExport SEXP _robfpca_mscale_cpp(SEXP uSEXP, SEXP deltaSEXP, SEXP tuning_chiSEXP, SEXP familySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type u(uSEXP);
+    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< double >::type tuning_chi(tuning_chiSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type family(familySEXP);
+    rcpp_result_gen = Rcpp::wrap(mscale_cpp(u, delta, tuning_chi, family));
+    return rcpp_result_gen;
+END_RCPP
+}
+// wfun
+Rcpp::NumericVector wfun(Rcpp::NumericVector x, Rcpp::String psi);
+RcppExport SEXP _robfpca_wfun(SEXP xSEXP, SEXP psiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type psi(psiSEXP);
+    rcpp_result_gen = Rcpp::wrap(wfun(x, psi));
+    return rcpp_result_gen;
+END_RCPP
+}
+// psif
+Rcpp::NumericVector psif(Rcpp::NumericVector x, Rcpp::String psi);
+RcppExport SEXP _robfpca_psif(SEXP xSEXP, SEXP psiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type psi(psiSEXP);
+    rcpp_result_gen = Rcpp::wrap(psif(x, psi));
+    return rcpp_result_gen;
+END_RCPP
+}
+// psipri
+Rcpp::NumericVector psipri(Rcpp::NumericVector x, Rcpp::String psi);
+RcppExport SEXP _robfpca_psipri(SEXP xSEXP, SEXP psiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type psi(psiSEXP);
+    rcpp_result_gen = Rcpp::wrap(psipri(x, psi));
+    return rcpp_result_gen;
+END_RCPP
+}
+// loc_scale_M
+Rcpp::List loc_scale_M(Rcpp::NumericVector x, Rcpp::String psi, double eff, int maxit, double tol);
+RcppExport SEXP _robfpca_loc_scale_M(SEXP xSEXP, SEXP psiSEXP, SEXP effSEXP, SEXP maxitSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type psi(psiSEXP);
+    Rcpp::traits::input_parameter< double >::type eff(effSEXP);
+    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(loc_scale_M(x, psi, eff, maxit, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // quantile_cpp
 double quantile_cpp(Rcpp::NumericVector x, double probs);
 RcppExport SEXP _robfpca_quantile_cpp(SEXP xSEXP, SEXP probsSEXP) {
@@ -77,6 +153,12 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_robfpca_fitdistr_cpp", (DL_FUNC) &_robfpca_fitdistr_cpp, 3},
     {"_robfpca_locScaleM_cpp", (DL_FUNC) &_robfpca_locScaleM_cpp, 3},
+    {"_robfpca_mad", (DL_FUNC) &_robfpca_mad, 1},
+    {"_robfpca_mscale_cpp", (DL_FUNC) &_robfpca_mscale_cpp, 4},
+    {"_robfpca_wfun", (DL_FUNC) &_robfpca_wfun, 2},
+    {"_robfpca_psif", (DL_FUNC) &_robfpca_psif, 2},
+    {"_robfpca_psipri", (DL_FUNC) &_robfpca_psipri, 2},
+    {"_robfpca_loc_scale_M", (DL_FUNC) &_robfpca_loc_scale_M, 5},
     {"_robfpca_quantile_cpp", (DL_FUNC) &_robfpca_quantile_cpp, 2},
     {"_robfpca_get_sigma2_rob_cpp", (DL_FUNC) &_robfpca_get_sigma2_rob_cpp, 1},
     {"_robfpca_cor_gk_cpp", (DL_FUNC) &_robfpca_cor_gk_cpp, 4},

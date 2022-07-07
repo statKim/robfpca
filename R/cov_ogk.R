@@ -67,17 +67,17 @@ cov_ogk <- function(X,
 
   # Step 2. correlation matrix
   # - Using Rcpp function (It gives same result with the below "cov_gk()".)
-  obj.gk <- cor_gk_cpp(X,
-                       type = type,
-                       MM = MM,
-                       df = df)
-  # obj.gk <- cov_gk(X,
-  #                  type = type,
-  #                  MM = MM,
-  #                  cor = TRUE,
-  #                  smooth = FALSE,
-  #                  psd = FALSE,
-  #                  df = df)
+  # obj.gk <- cor_gk_cpp(X,
+  #                      type = type,
+  #                      MM = MM,
+  #                      df = df)
+  obj.gk <- cov_gk(X,
+                   type = type,
+                   MM = MM,
+                   cor = TRUE,
+                   smooth = FALSE,
+                   psd = FALSE,
+                   df = df)
   U <- obj.gk$cov
   rob.disp <- obj.gk$disp
 

@@ -9,6 +9,30 @@ locScaleM_cpp <- function(x, psi, na_rm = 1L) {
     .Call(`_robfpca_locScaleM_cpp`, x, psi, na_rm)
 }
 
+mad <- function(x) {
+    .Call(`_robfpca_mad`, x)
+}
+
+mscale_cpp <- function(u, delta = 0.5, tuning_chi = 1.547645, family = "bisquare") {
+    .Call(`_robfpca_mscale_cpp`, u, delta, tuning_chi, family)
+}
+
+wfun <- function(x, psi) {
+    .Call(`_robfpca_wfun`, x, psi)
+}
+
+psif <- function(x, psi) {
+    .Call(`_robfpca_psif`, x, psi)
+}
+
+psipri <- function(x, psi) {
+    .Call(`_robfpca_psipri`, x, psi)
+}
+
+loc_scale_M <- function(x, psi = "huber", eff = 0.95, maxit = 50L, tol = 1.e-4) {
+    .Call(`_robfpca_loc_scale_M`, x, psi, eff, maxit, tol)
+}
+
 quantile_cpp <- function(x, probs) {
     .Call(`_robfpca_quantile_cpp`, x, probs)
 }
