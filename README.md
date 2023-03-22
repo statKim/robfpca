@@ -214,10 +214,9 @@ obtain reproducible results in our paper.
 
 ## Reference
 
--   Park, Y., Kim, H. and Lim, Y. (2022+). Functional principal
-    component analysis for partially observed elliptical process, *Under
-    review*.
-
+-   Park, Y., Kim, H. and Lim, Y. (2023+). Functional principal
+    component analysis for partially observed elliptical process, *Computational Statistics & Data Analysis*, accepted.
+    
 -   Yao, F., Müller, H. G., & Wang, J. L. (2005). Functional data
     analysis for sparse longitudinal data. *Journal of the American
     statistical association*, 100(470), 577-590.
