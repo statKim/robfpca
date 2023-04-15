@@ -169,5 +169,7 @@ obtain reproducible results in our paper.
 
 ## Additional example
 
-In [example](vignettes/example.html), you can also check the comparison
-result between Proposed FPCA and Sparse FPCA.
+In
+[example](https://nbviewer.org/github/statKim/robfpca/blob/main/vignettes/example.html),
+you can also check the comparison result between Proposed FPCA and
+Sparse FPCA.
