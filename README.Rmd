@@ -127,3 +127,7 @@ matlines(t(pred_comp), type = "l", lty = 1, lwd = 2)
 If you use `simulation.R` in [Here](https://github.com/statKim/fpca-partial-obs-ellipt-proc), you can obtain reproducible results in our paper.
 
 
+## Additional example
+In [example](vignettes/example.html), you can also check the comparison result between Proposed FPCA and Sparse FPCA.
+
+

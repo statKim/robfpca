@@ -19,7 +19,7 @@ library(robfpca)
 ```
 
 
-## Comparison with Proposed FPCA and Sparse FPCA
+## Comparison between Proposed FPCA and Sparse FPCA
 
 ### Generate partially observed functional data from heavy-tailed distribution
 First, we generate 100 partially observed curves from heavy-tailed $t_3$ distribution.
