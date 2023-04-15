@@ -7,9 +7,8 @@ data.
 
 The proposed robust FPCA method implements FPCA based on the conditional
 expectation for the robust covariance function estimate. The robust
-covariance function is estimated using the modified
-Gnanadesikan-Kettenring (GK) identity based on M-estimator, and then
-orthogonalized.
+covariance function is obtained via robust pairwise computation based on
+Orthogonalized Gnanadesikan-Kettenring (OGK) estimation.
 
 ## Installation
 
@@ -22,19 +21,19 @@ devtools::install_github("statKim/robfpca")
 
 ### Generate partially observed functional data from heavy-tailed distribution
 
-First, we generate 100 partially observed curves from heavy-tailed
-*t*<sub>3</sub> distribution.
+First, we generate 100 partially observed curves from heavy-tailed $t_3$
+distribution.
 
 ``` r
 library(robfpca)
 
 # Generate partially observed curves from heavy-tailed distribution
 set.seed(46)
-x <- sim_delaigle(n = 100,
-                  type = "partial",
-                  dist = "tdist")
-X <- list2matrix(x)   # transform list to matrix
-gr <- seq(0, 1, length.out = 51)   # observed timepoints
+X.list <- sim_delaigle(n = 100,
+                       type = "partial",
+                       dist = "tdist")
+X <- list2matrix(X.list)   # transform list to matrix
+gr <- seq(0, 1, length.out = ncol(X))   # observed timepoints
 matplot(gr, t(X), 
         type = "l",
         xlab = "t", ylab = "X(t)")
@@ -57,7 +56,6 @@ cov.obj <- cov_ogk(X,
                    bw = 0.3)
 mu.ogk <- cov.obj$mean
 cov.ogk <- cov.obj$cov
-noise.ogk <- cov.obj$noise.var
 ```
 
 ### Competing methods
@@ -72,11 +70,10 @@ bw <- 0.1   # fixed bandwidth
 optns <- list(methodXi = "CE", dataType = "Sparse", kernel = "epan", 
               verbose = FALSE, error = FALSE,
               userBwMu = bw, userBwCov = bw)
-mu.yao.obj <- GetMeanCurve(Ly = x$Ly, Lt = x$Lt, optns = optns)
-cov.yao.obj <- GetCovSurface(Ly = x$Ly, Lt = x$Lt, optns = optns)
+mu.yao.obj <- GetMeanCurve(Ly = X.list$Ly, Lt = X.list$Lt, optns = optns)
+cov.yao.obj <- GetCovSurface(Ly = X.list$Ly, Lt = X.list$Lt, optns = optns)
 mu.yao <- mu.yao.obj$mu
 cov.yao <- cov.yao.obj$cov
-noise.yao <- 0
 ```
 
 Following figures show the true and estimated correlation surfaces.
@@ -112,20 +109,18 @@ al. (2005))
 
 ``` r
 # Yao et al.(2005)
-pca.yao.obj <- funPCA(Lt = x$Lt, 
-                      Ly = x$Ly,
+pca.yao.obj <- funPCA(Lt = X.list$Lt, 
+                      Ly = X.list$Ly,
                       mu = mu.yao, 
                       cov = cov.yao, 
-                      sig2 = noise.yao,
                       work.grid = gr,
                       K = 4)
 
 # Proposed
-pca.ogk.obj <- funPCA(Lt = x$Lt, 
-                      Ly = x$Ly,
+pca.ogk.obj <- funPCA(Lt = X.list$Lt, 
+                      Ly = X.list$Ly,
                       mu = mu.ogk, 
                       cov = cov.ogk, 
-                      sig2 = noise.ogk,
                       work.grid = gr,
                       K = 4)
 ```
@@ -170,19 +165,21 @@ pred_ogk_mat <- predict(pca.ogk.obj, K = 4)
 ### Completion and Reconstruction example
 i <- 1   # 1st curve
 NA_ind <- which(is.na(X[i, ]))   # index of missing periods
+X_comp <- cbind(X[i, ],
+                NA,
+                NA)
+X_comp[NA_ind, 2] <- pred_yao_mat[i, NA_ind]  # completion of Sparse FPCA 
+X_comp[NA_ind, 3] <- pred_ogk_mat[i, NA_ind]  # completion of proposed method
 
 par(mfrow = c(1, 2))
-
 # Completion
 matplot(gr, 
-        cbind(X[i, ], 
-              pred_missing_curve(X[i, ], pred_yao_mat[i, ], conti = FALSE),
-              pred_missing_curve(X[i, ], pred_ogk_mat[i, ], conti = FALSE)),
+        X_comp,
         type = "l",
         lwd = 2,
         xlab = "t", ylab = "X(t)")
 lines(gr[NA_ind], 
-      x$x.full[i, NA_ind],
+      X.list$x.full[i, NA_ind],
       col = "darkgray", lty = 2, lwd = 2)
 grid()
 legend("bottomleft", 
@@ -199,7 +196,7 @@ matplot(gr,
         lwd = 2,
         xlab = "t", ylab = "X(t)")
 lines(gr[NA_ind], 
-      x$x.full[i, NA_ind],
+      X.list$x.full[i, NA_ind],
       col = "darkgray", lty = 2, lwd = 2)
 grid()
 ```
@@ -214,9 +211,10 @@ obtain reproducible results in our paper.
 
 ## Reference
 
--   Park, Y., Kim, H. and Lim, Y. (2023+). Functional principal
-    component analysis for partially observed elliptical process, *Computational Statistics & Data Analysis*, accepted.
-    
--   Yao, F., Müller, H. G., & Wang, J. L. (2005). Functional data
-    analysis for sparse longitudinal data. *Journal of the American
-    statistical association*, 100(470), 577-590.
+- Park, Y., Kim, H. and Lim, Y. (2023). Functional principal component
+  analysis for partially observed elliptical process, *Computational
+  Statistics & Data Analysis*, 184, 107745.
+
+- Yao, F., Müller, H. G., & Wang, J. L. (2005). Functional data analysis
+  for sparse longitudinal data. *Journal of the American statistical
+  association*, 100(470), 577-590.

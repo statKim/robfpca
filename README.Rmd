@@ -52,7 +52,6 @@ cov.obj <- cov_ogk(X,
                    bw = 0.3)
 mu.ogk <- cov.obj$mean
 cov.ogk <- cov.obj$cov
-noise.ogk <- cov.obj$noise.var
 ```
 
 ### Competing methods
@@ -64,11 +63,10 @@ bw <- 0.1   # fixed bandwidth
 optns <- list(methodXi = "CE", dataType = "Sparse", kernel = "epan", 
               verbose = FALSE, error = FALSE,
               userBwMu = bw, userBwCov = bw)
-mu.yao.obj <- GetMeanCurve(Ly = x$Ly, Lt = x$Lt, optns = optns)
-cov.yao.obj <- GetCovSurface(Ly = x$Ly, Lt = x$Lt, optns = optns)
+mu.yao.obj <- GetMeanCurve(Ly = X.list$Ly, Lt = X.list$Lt, optns = optns)
+cov.yao.obj <- GetCovSurface(Ly = X.list$Ly, Lt = X.list$Lt, optns = optns)
 mu.yao <- mu.yao.obj$mu
 cov.yao <- cov.yao.obj$cov
-noise.yao <- 0
 ```
 
 
@@ -100,20 +98,18 @@ persp3D(gr, gr,
 We perform FPCA based on the conditional expectation. (Yao et al. (2005))
 ```{r}
 # Yao et al.(2005)
-pca.yao.obj <- funPCA(Lt = x$Lt, 
-                      Ly = x$Ly,
+pca.yao.obj <- funPCA(Lt = X.list$Lt, 
+                      Ly = X.list$Ly,
                       mu = mu.yao, 
                       cov = cov.yao, 
-                      sig2 = noise.yao,
                       work.grid = gr,
                       K = 4)
 
 # Proposed
-pca.ogk.obj <- funPCA(Lt = x$Lt, 
-                      Ly = x$Ly,
+pca.ogk.obj <- funPCA(Lt = X.list$Lt, 
+                      Ly = X.list$Ly,
                       mu = mu.ogk, 
                       cov = cov.ogk, 
-                      sig2 = noise.ogk,
                       work.grid = gr,
                       K = 4)
 ```
@@ -156,19 +152,21 @@ pred_ogk_mat <- predict(pca.ogk.obj, K = 4)
 ### Completion and Reconstruction example
 i <- 1   # 1st curve
 NA_ind <- which(is.na(X[i, ]))   # index of missing periods
+X_comp <- cbind(X[i, ],
+                NA,
+                NA)
+X_comp[NA_ind, 2] <- pred_yao_mat[i, NA_ind]  # completion of Sparse FPCA 
+X_comp[NA_ind, 3] <- pred_ogk_mat[i, NA_ind]  # completion of proposed method
 
 par(mfrow = c(1, 2))
-
 # Completion
 matplot(gr, 
-        cbind(X[i, ], 
-              pred_missing_curve(X[i, ], pred_yao_mat[i, ], conti = FALSE),
-              pred_missing_curve(X[i, ], pred_ogk_mat[i, ], conti = FALSE)),
+        X_comp,
         type = "l",
         lwd = 2,
         xlab = "t", ylab = "X(t)")
 lines(gr[NA_ind], 
-      x$x.full[i, NA_ind],
+      X.list$x.full[i, NA_ind],
       col = "darkgray", lty = 2, lwd = 2)
 grid()
 legend("bottomleft", 
@@ -185,7 +183,7 @@ matplot(gr,
         lwd = 2,
         xlab = "t", ylab = "X(t)")
 lines(gr[NA_ind], 
-      x$x.full[i, NA_ind],
+      X.list$x.full[i, NA_ind],
       col = "darkgray", lty = 2, lwd = 2)
 grid()
 ```
@@ -196,7 +194,7 @@ If you use `simulation.R` in [Here](https://github.com/statKim/fpca-partial-obs-
 
 
 ## Reference
-- Park, Y., Kim, H. and Lim, Y. (2022+). Functional principal component analysis for partially observed elliptical process, *Under review*.
+- Park, Y., Kim, H. and Lim, Y. (2023). Functional principal component analysis for partially observed elliptical process, *Computational Statistics & Data Analysis*, 184, 107745.
 
 - Yao, F., Müller, H. G., & Wang, J. L. (2005). Functional data analysis for sparse longitudinal data. *Journal of the American statistical association*, 100(470), 577-590.
 

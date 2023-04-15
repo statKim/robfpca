@@ -131,7 +131,7 @@
 #'
 #'
 #' @references
-#' \cite{Park, Y., Kim, H., & Lim, Y. (2022+). Functional principal component analysis for partially observed elliptical process, Under review.}
+#' \cite{Park, Y., Kim, H., & Lim, Y. (2023). Functional principal component analysis for partially observed elliptical process, Computational Statistics & Data Analysis, 184, 107745.}
 #'
 #' \cite{Maronna, R. A., & Zamar, R. H. (2002). Robust estimates of location and dispersion for high-dimensional datasets. Technometrics, 44(4), 307-317.}
 #'
